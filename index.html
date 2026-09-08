@@ -1,0 +1,728 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Town Fair — Word Trainer</title>
+<style>
+:root{
+  --night:#241A47;
+  --night-2:#150E2E;
+  --ticket:#FFC531;
+  --red:#E8453C;
+  --mint:#35C6B4;
+  --cream:#FFF6E3;
+  --ink:#1B1233;
+  --ok:#3FB861;
+  --radius:18px;
+  --font:"Trebuchet MS","Segoe UI",system-ui,-apple-system,Verdana,sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  font-family:var(--font);
+  background:
+    radial-gradient(1100px 520px at 50% -180px, #3B2A6E 0%, rgba(59,42,110,0) 70%),
+    linear-gradient(180deg,var(--night) 0%,var(--night-2) 100%);
+  background-attachment:fixed;
+  color:var(--cream);
+  min-height:100vh;
+  -webkit-text-size-adjust:100%;
+}
+.wrap{max-width:1080px;margin:0 auto;padding:18px 16px 64px}
+
+/* ---------- string lights ---------- */
+.lights{display:block;width:100%;height:38px}
+
+/* ---------- header ---------- */
+header{text-align:center;margin:2px 0 18px}
+h1{
+  font-size:clamp(30px,7vw,54px);
+  line-height:.95;
+  margin:6px 0 6px;
+  color:var(--ticket);
+  letter-spacing:-.02em;
+  text-shadow:0 4px 0 #A9741A;
+}
+.sub{margin:0;color:#C9BEEA;font-size:15px}
+
+/* ---------- ticket nav ---------- */
+nav{
+  display:flex;flex-wrap:wrap;gap:8px;justify-content:center;
+  margin:20px 0 26px;
+}
+.tab{
+  position:relative;
+  font-family:inherit;
+  font-size:15px;font-weight:bold;
+  color:var(--night);
+  background:var(--cream);
+  border:0;
+  padding:11px 16px 11px 40px;
+  border-radius:6px;
+  cursor:pointer;
+  box-shadow:0 3px 0 rgba(0,0,0,.35);
+}
+.tab::before{
+  content:attr(data-n);
+  position:absolute;left:8px;top:50%;transform:translateY(-50%);
+  width:24px;height:24px;border-radius:50%;
+  background:var(--night);color:var(--ticket);
+  display:grid;place-items:center;font-size:13px;
+}
+.tab[aria-selected="true"]{background:var(--ticket);transform:translateY(1px);box-shadow:0 2px 0 rgba(0,0,0,.45)}
+.tab:focus-visible{outline:3px solid var(--mint);outline-offset:3px}
+
+/* ---------- panels ---------- */
+.panel{display:none}
+.panel.on{display:block}
+.lead{
+  max-width:62ch;margin:0 auto 22px;text-align:center;
+  color:#D6CDF2;font-size:17px;line-height:1.5;
+}
+
+/* ---------- flip cards ---------- */
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:16px}
+.card{perspective:1000px;background:none;border:0;padding:0;font-family:inherit;cursor:pointer}
+.card:focus-visible .face{outline:3px solid var(--mint);outline-offset:3px}
+.inner{position:relative;width:100%;height:260px;transition:transform .5s;transform-style:preserve-3d}
+.card.flipped .inner{transform:rotateY(180deg)}
+.face{
+  position:absolute;inset:0;backface-visibility:hidden;
+  border-radius:var(--radius);padding:14px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;
+  box-shadow:0 6px 0 rgba(0,0,0,.35);
+}
+.front{background:var(--cream);color:var(--ink)}
+.back{background:var(--mint);color:#0C2C29;transform:rotateY(180deg);justify-content:flex-start;text-align:left}
+.front svg{width:118px;height:118px}
+.word{
+  background:var(--ticket);color:var(--ink);
+  font-weight:bold;font-size:18px;padding:6px 14px;border-radius:999px;
+}
+.hint{font-size:12px;color:#7A6E99}
+.back .word{margin-bottom:2px;align-self:flex-start}
+.def{font-size:15px;line-height:1.45;margin:0}
+.ex{font-size:14px;line-height:1.4;margin:auto 0 0;font-style:italic;opacity:.85}
+.say{
+  align-self:flex-end;margin-top:6px;
+  border:0;background:#0C2C29;color:var(--mint);
+  width:38px;height:38px;border-radius:50%;font-size:17px;cursor:pointer;
+}
+
+/* ---------- matching ---------- */
+.match{display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:start}
+.col{display:flex;flex-direction:column;gap:10px}
+.col h2{
+  font-size:15px;margin:0 0 2px;color:#C9BEEA;font-weight:normal;
+}
+.opt{
+  font-family:inherit;text-align:left;cursor:pointer;
+  border:3px solid transparent;border-radius:14px;
+  background:var(--cream);color:var(--ink);
+  padding:10px 12px;font-size:16px;line-height:1.35;
+  display:flex;align-items:center;gap:10px;
+}
+.opt svg{width:64px;height:64px;flex:none}
+.opt.pick{border-color:var(--ticket);transform:translateY(-2px)}
+.opt.done{background:var(--ok);color:#fff;cursor:default;opacity:.75}
+.opt.bad{border-color:var(--red);animation:shake .3s}
+.opt:focus-visible{outline:3px solid var(--mint);outline-offset:2px}
+.opt.word-opt{font-weight:bold;justify-content:center;text-align:center}
+@keyframes shake{25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+
+/* ---------- story ---------- */
+.story{
+  background:var(--cream);color:var(--ink);
+  border-radius:var(--radius);padding:22px;
+  font-size:18px;line-height:2.1;max-width:70ch;margin:0 auto;
+}
+.blank{
+  display:inline-block;min-width:120px;
+  border:0;border-bottom:3px dashed #B3A7D6;
+  background:#F2ECFA;color:var(--ink);
+  font-family:inherit;font-size:17px;font-weight:bold;
+  padding:2px 8px;border-radius:6px 6px 0 0;cursor:pointer;
+}
+.blank.sel{background:var(--ticket);border-bottom-color:var(--night)}
+.blank.ok{background:var(--ok);color:#fff;border-bottom-color:var(--ok)}
+.blank.no{background:#FBD3D1;border-bottom-color:var(--red)}
+.chips{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin:18px auto 0;max-width:70ch}
+.chip{
+  font-family:inherit;font-size:16px;font-weight:bold;cursor:pointer;
+  background:var(--ticket);color:var(--ink);border:0;
+  padding:9px 14px;border-radius:999px;box-shadow:0 3px 0 rgba(0,0,0,.35);
+}
+.chip.used{opacity:.3;cursor:default}
+.chip:focus-visible,.blank:focus-visible{outline:3px solid var(--mint);outline-offset:2px}
+
+/* ---------- quiz ---------- */
+.quiz{max-width:640px;margin:0 auto;text-align:center}
+.qbox{background:var(--cream);color:var(--ink);border-radius:var(--radius);padding:22px}
+.qbox svg{width:150px;height:150px}
+.qtext{font-size:19px;line-height:1.45;margin:0 0 16px}
+.qgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px}
+.tiles{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-top:14px}
+.tile{
+  font-family:inherit;font-size:19px;font-weight:bold;cursor:pointer;
+  width:42px;height:46px;border:0;border-radius:10px;
+  background:var(--night);color:var(--ticket);
+}
+.tile.used{opacity:.25;cursor:default}
+.slotline{
+  font-size:26px;font-weight:bold;letter-spacing:.12em;
+  min-height:36px;color:var(--ink);word-break:break-word;
+}
+.bar{height:10px;background:#3B2A6E;border-radius:999px;overflow:hidden;margin:0 0 16px}
+.bar i{display:block;height:100%;background:var(--ticket);width:0;transition:width .3s}
+.score{font-size:16px;color:#C9BEEA;margin:10px 0 0}
+.result{font-size:22px;font-weight:bold;color:var(--ticket)}
+
+/* ---------- buttons ---------- */
+.go{
+  font-family:inherit;font-size:16px;font-weight:bold;cursor:pointer;
+  background:var(--red);color:#fff;border:0;
+  padding:12px 22px;border-radius:999px;box-shadow:0 4px 0 #9E2A24;
+  margin:18px auto 0;display:block;
+}
+.go.quiet{background:var(--night);box-shadow:0 4px 0 #0D0820;color:var(--cream)}
+.go:focus-visible{outline:3px solid var(--mint);outline-offset:3px}
+.note{text-align:center;margin:14px 0 0;font-size:17px;min-height:26px}
+.note.good{color:var(--ok)}
+.note.bad{color:#FF9A95}
+
+@media (max-width:640px){
+  .match{grid-template-columns:1fr}
+  .qgrid{grid-template-columns:1fr}
+  .opt svg{width:52px;height:52px}
+  .story{font-size:17px;padding:16px}
+}
+@media (prefers-reduced-motion:reduce){
+  *{transition:none!important;animation:none!important}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<svg class="lights" viewBox="0 0 1000 40" preserveAspectRatio="none" aria-hidden="true">
+  <path d="M0 6 Q125 34 250 8 Q375 34 500 8 Q625 34 750 8 Q875 34 1000 6" fill="none" stroke="#5B4A92" stroke-width="2"/>
+  <g>
+    <circle cx="125" cy="22" r="6" fill="#FFC531"/><circle cx="250" cy="9" r="6" fill="#E8453C"/>
+    <circle cx="375" cy="22" r="6" fill="#35C6B4"/><circle cx="500" cy="9" r="6" fill="#FFC531"/>
+    <circle cx="625" cy="22" r="6" fill="#E8453C"/><circle cx="750" cy="9" r="6" fill="#35C6B4"/>
+    <circle cx="875" cy="22" r="6" fill="#FFC531"/>
+  </g>
+</svg>
+
+<header>
+  <h1>The Town Fair</h1>
+  <p class="sub">Nine words to learn, play with and remember. Super Minds 4</p>
+</header>
+
+<nav role="tablist" aria-label="Activities">
+  <button class="tab" role="tab" data-n="1" data-p="p1" aria-selected="true">Word cards</button>
+  <button class="tab" role="tab" data-n="2" data-p="p2" aria-selected="false">Look and match</button>
+  <button class="tab" role="tab" data-n="3" data-p="p3" aria-selected="false">What does it mean?</button>
+  <button class="tab" role="tab" data-n="4" data-p="p4" aria-selected="false">Fair day story</button>
+  <button class="tab" role="tab" data-n="5" data-p="p5" aria-selected="false">Ticket quiz</button>
+</nav>
+
+<section class="panel on" id="p1">
+  <p class="lead">Look at the picture and say the word. Then tap the card to read what it means.</p>
+  <div class="cards" id="cardGrid"></div>
+</section>
+
+<section class="panel" id="p2">
+  <p class="lead">Tap a picture, then tap its word. Nine pairs to find.</p>
+  <div class="match">
+    <div class="col" id="picCol"><h2>Pictures</h2></div>
+    <div class="col" id="picWords"><h2>Words</h2></div>
+  </div>
+  <p class="note" id="note2"></p>
+  <button class="go quiet" id="reset2">Play again</button>
+</section>
+
+<section class="panel" id="p3">
+  <p class="lead">Tap a meaning, then tap the word that goes with it.</p>
+  <div class="match">
+    <div class="col" id="defCol"><h2>Meanings</h2></div>
+    <div class="col" id="defWords"><h2>Words</h2></div>
+  </div>
+  <p class="note" id="note3"></p>
+  <button class="go quiet" id="reset3">Play again</button>
+</section>
+
+<section class="panel" id="p4">
+  <p class="lead">Tap a gap, then tap the word for it. Change your mind? Tap the gap again.</p>
+  <div class="story" id="story"></div>
+  <div class="chips" id="storyChips"></div>
+  <button class="go" id="checkStory">Check my story</button>
+  <p class="note" id="note4"></p>
+</section>
+
+<section class="panel" id="p5">
+  <p class="lead">Ten questions. Win a ticket for every right answer.</p>
+  <div class="quiz">
+    <div class="bar"><i id="bar"></i></div>
+    <div class="qbox" id="qbox"></div>
+    <p class="score" id="score"></p>
+  </div>
+</section>
+
+</div>
+
+<script>
+(function(){
+"use strict";
+
+/* ================= pictures ================= */
+var NIGHT="#241A47", TICKET="#FFC531", RED="#E8453C", MINT="#35C6B4", CREAM="#FFF6E3", SKIN="#F2C49B";
+
+function svg(inner){
+  return '<svg viewBox="0 0 120 120" role="img" xmlns="http://www.w3.org/2000/svg">'+inner+'</svg>';
+}
+function person(x,y,shirt){
+  return '<g transform="translate('+x+','+y+')">'+
+    '<rect x="-14" y="6" width="28" height="34" rx="10" fill="'+shirt+'"/>'+
+    '<rect x="-11" y="38" width="22" height="26" rx="6" fill="'+NIGHT+'"/>'+
+    '<circle cx="0" cy="-8" r="13" fill="'+SKIN+'"/>'+
+    '<path d="M-13,-10 a13,13 0 0 1 26,0 q-13,-9 -26,0 z" fill="#3A2418"/>'+
+  '</g>';
+}
+
+var PICS={};
+
+/* big wheel */
+(function(){
+  var s='<g stroke="'+NIGHT+'" stroke-width="4" stroke-linecap="round">'+
+        '<path d="M40 108 L60 58 M80 108 L60 58" fill="none"/></g>'+
+        '<rect x="32" y="104" width="56" height="8" rx="4" fill="'+NIGHT+'"/>'+
+        '<circle cx="60" cy="56" r="40" fill="none" stroke="'+TICKET+'" stroke-width="5"/>';
+  var spokes='<g stroke="'+TICKET+'" stroke-width="3">';
+  var cabs='';
+  var cols=[RED,MINT,CREAM,RED,MINT,CREAM];
+  for(var i=0;i<6;i++){
+    var a=i*Math.PI/3;
+    var x=60+40*Math.cos(a), y=56+40*Math.sin(a);
+    spokes+='<line x1="60" y1="56" x2="'+x.toFixed(1)+'" y2="'+y.toFixed(1)+'"/>';
+    cabs+='<circle cx="'+x.toFixed(1)+'" cy="'+y.toFixed(1)+'" r="8" fill="'+cols[i]+'" stroke="'+NIGHT+'" stroke-width="2.5"/>';
+  }
+  spokes+='</g>';
+  PICS["big wheel"]=svg(s+spokes+cabs+'<circle cx="60" cy="56" r="8" fill="'+NIGHT+'"/>');
+})();
+
+/* roller coaster */
+PICS["roller coaster"]=svg(
+  '<g stroke="'+NIGHT+'" stroke-width="3">'+
+   '<line x1="30" y1="46" x2="30" y2="104"/><line x1="62" y1="72" x2="62" y2="104"/><line x1="94" y1="40" x2="94" y2="104"/>'+
+  '</g>'+
+  '<rect x="8" y="102" width="104" height="8" rx="4" fill="'+NIGHT+'"/>'+
+  '<path d="M8 96 C 14 34, 46 30, 58 78 C 68 24, 92 26, 112 96" fill="none" stroke="'+MINT+'" stroke-width="6" stroke-linecap="round"/>'+
+  '<path d="M8 96 C 14 34, 46 30, 58 78 C 68 24, 92 26, 112 96" fill="none" stroke="'+CREAM+'" stroke-width="2" stroke-dasharray="4 6"/>'+
+  '<g transform="translate(84,42) rotate(-38)">'+
+    '<rect x="-16" y="-12" width="32" height="16" rx="5" fill="'+RED+'"/>'+
+    '<circle cx="-8" cy="-16" r="5" fill="'+SKIN+'"/><circle cx="6" cy="-16" r="5" fill="'+SKIN+'"/>'+
+    '<circle cx="-9" cy="6" r="4" fill="'+NIGHT+'"/><circle cx="9" cy="6" r="4" fill="'+NIGHT+'"/>'+
+  '</g>'
+);
+
+/* roundabout */
+(function(){
+  var roof='<path d="M18 54 L60 16 L102 54 Z" fill="'+RED+'"/>'+
+           '<path d="M60 16 L74 54 L88 54 Z" fill="'+CREAM+'"/>'+
+           '<path d="M60 16 L46 54 L32 54 Z" fill="'+CREAM+'"/>'+
+           '<circle cx="60" cy="13" r="5" fill="'+TICKET+'"/>';
+  var horse='<g transform="translate(60,72)">'+
+      '<rect x="-16" y="-6" width="32" height="15" rx="7" fill="'+CREAM+'" stroke="'+NIGHT+'" stroke-width="2"/>'+
+      '<path d="M12 -4 q10 -4 8 -14 q-2 -6 -9 -3 q-5 2 -6 10 z" fill="'+CREAM+'" stroke="'+NIGHT+'" stroke-width="2"/>'+
+      '<path d="M-16 0 q-8 4 -6 12" fill="none" stroke="'+NIGHT+'" stroke-width="3"/>'+
+      '<g stroke="'+NIGHT+'" stroke-width="3"><line x1="-9" y1="8" x2="-11" y2="18"/><line x1="8" y1="8" x2="10" y2="18"/></g>'+
+      '<circle cx="17" cy="-15" r="2" fill="'+NIGHT+'"/>'+
+    '</g>';
+  var poles='<g stroke="'+TICKET+'" stroke-width="4"><line x1="26" y1="54" x2="26" y2="98"/><line x1="60" y1="54" x2="60" y2="98"/><line x1="94" y1="54" x2="94" y2="98"/></g>';
+  PICS["roundabout"]=svg(roof+poles+horse+'<ellipse cx="60" cy="100" rx="46" ry="9" fill="'+NIGHT+'"/>');
+})();
+
+/* dodgem cars */
+PICS["dodgem cars"]=svg(
+  '<rect x="6" y="8" width="108" height="6" rx="3" fill="'+NIGHT+'"/>'+
+  '<line x1="62" y1="14" x2="62" y2="52" stroke="'+NIGHT+'" stroke-width="3"/>'+
+  '<path d="M56 20 l8 6 l-6 6 l8 5" fill="none" stroke="'+TICKET+'" stroke-width="3" stroke-linecap="round"/>'+
+  '<circle cx="62" cy="42" r="14" fill="'+SKIN+'"/>'+
+  '<path d="M49 42 a13,13 0 0 1 26,0 q-13,-9 -26,0 z" fill="#3A2418"/>'+
+  '<path d="M30 78 q6 -18 32 -18 q26 0 32 18 z" fill="'+RED+'"/>'+
+  '<rect x="52" y="58" width="20" height="10" rx="4" fill="'+MINT+'"/>'+
+  '<rect x="16" y="76" width="88" height="16" rx="8" fill="'+TICKET+'" stroke="'+NIGHT+'" stroke-width="3"/>'+
+  '<circle cx="36" cy="96" r="8" fill="'+NIGHT+'"/><circle cx="84" cy="96" r="8" fill="'+NIGHT+'"/>'
+);
+
+/* band */
+PICS["band"]=svg(
+  '<circle cx="44" cy="70" r="30" fill="'+CREAM+'" stroke="'+NIGHT+'" stroke-width="4"/>'+
+  '<circle cx="44" cy="70" r="12" fill="'+RED+'"/>'+
+  '<g stroke="'+NIGHT+'" stroke-width="3"><line x1="60" y1="44" x2="88" y2="20"/><line x1="66" y1="52" x2="94" y2="30"/></g>'+
+  '<circle cx="90" cy="18" r="5" fill="'+NIGHT+'"/><circle cx="96" cy="28" r="5" fill="'+NIGHT+'"/>'+
+  '<g transform="translate(88,74)">'+
+    '<ellipse cx="0" cy="8" rx="17" ry="19" fill="'+MINT+'" stroke="'+NIGHT+'" stroke-width="3"/>'+
+    '<circle cx="0" cy="8" r="6" fill="'+NIGHT+'"/>'+
+    '<rect x="-4" y="-30" width="8" height="24" rx="3" fill="'+NIGHT+'"/>'+
+    '<rect x="-8" y="-38" width="16" height="9" rx="3" fill="'+TICKET+'"/>'+
+  '</g>'+
+  '<g fill="'+TICKET+'"><circle cx="18" cy="24" r="6"/><rect x="22" y="6" width="3.5" height="19" rx="1.5"/>'+
+   '<circle cx="34" cy="18" r="6"/><rect x="38" y="1" width="3.5" height="20" rx="1.5"/>'+
+   '<rect x="22" y="4" width="20" height="4" rx="2"/></g>'
+);
+
+/* mayor */
+PICS["mayor"]=svg(
+  person(60,44,"#2E4A8C")+
+  '<path d="M46 50 L74 88" stroke="'+RED+'" stroke-width="11" stroke-linecap="round"/>'+
+  '<path d="M50 52 q10 16 22 6" fill="none" stroke="'+TICKET+'" stroke-width="3"/>'+
+  '<circle cx="60" cy="70" r="8" fill="'+TICKET+'" stroke="'+NIGHT+'" stroke-width="2"/>'+
+  '<path d="M56 70 l3 4 l6 -7" fill="none" stroke="'+NIGHT+'" stroke-width="2"/>'+
+  '<rect x="42" y="18" width="36" height="7" rx="3" fill="'+NIGHT+'"/>'+
+  '<rect x="49" y="2" width="22" height="17" rx="3" fill="'+NIGHT+'"/>'+
+  '<rect x="49" y="13" width="22" height="5" fill="'+TICKET+'"/>'
+);
+
+/* microphone */
+PICS["microphone"]=svg(
+  '<rect x="46" y="10" width="28" height="50" rx="14" fill="'+NIGHT+'" stroke="'+CREAM+'" stroke-width="3"/>'+
+  '<g fill="'+CREAM+'" opacity=".8">'+
+   '<circle cx="55" cy="22" r="2"/><circle cx="65" cy="22" r="2"/><circle cx="55" cy="31" r="2"/>'+
+   '<circle cx="65" cy="31" r="2"/><circle cx="55" cy="40" r="2"/><circle cx="65" cy="40" r="2"/></g>'+
+  '<path d="M34 48 a26 26 0 0 0 52 0" fill="none" stroke="'+TICKET+'" stroke-width="5" stroke-linecap="round"/>'+
+  '<rect x="55" y="72" width="10" height="26" rx="4" fill="'+TICKET+'"/>'+
+  '<ellipse cx="60" cy="102" rx="26" ry="8" fill="'+NIGHT+'" stroke="'+TICKET+'" stroke-width="3"/>'+
+  '<g stroke="'+MINT+'" stroke-width="3" stroke-linecap="round" fill="none">'+
+   '<path d="M92 24 q8 12 0 24"/><path d="M28 24 q-8 12 0 24"/></g>'
+);
+
+/* journalist */
+PICS["journalist"]=svg(
+  person(54,40,MINT)+
+  '<g transform="translate(84,72) rotate(10)">'+
+    '<rect x="-16" y="-20" width="32" height="40" rx="4" fill="'+CREAM+'" stroke="'+NIGHT+'" stroke-width="3"/>'+
+    '<g stroke="'+NIGHT+'" stroke-width="2.5" opacity=".55">'+
+      '<line x1="-9" y1="-8" x2="9" y2="-8"/><line x1="-9" y1="0" x2="9" y2="0"/><line x1="-9" y1="8" x2="4" y2="8"/></g>'+
+    '<g stroke="'+NIGHT+'" stroke-width="2.5"><line x1="-10" y1="-24" x2="-10" y2="-17"/>'+
+     '<line x1="0" y1="-24" x2="0" y2="-17"/><line x1="10" y1="-24" x2="10" y2="-17"/></g>'+
+  '</g>'+
+  '<g transform="translate(64,64) rotate(35)"><rect x="-3" y="-22" width="6" height="26" rx="2" fill="'+TICKET+'"/>'+
+   '<path d="M-3 4 L3 4 L0 12 Z" fill="'+NIGHT+'"/></g>'
+);
+
+/* photographer */
+PICS["photographer"]=svg(
+  person(60,48,"#8E5BC9")+
+  '<g transform="translate(60,44)">'+
+    '<rect x="-30" y="-14" width="60" height="40" rx="8" fill="'+NIGHT+'"/>'+
+    '<rect x="-14" y="-22" width="20" height="10" rx="3" fill="'+NIGHT+'"/>'+
+    '<circle cx="0" cy="6" r="15" fill="'+MINT+'" stroke="'+CREAM+'" stroke-width="3"/>'+
+    '<circle cx="0" cy="6" r="6" fill="'+NIGHT+'"/>'+
+    '<rect x="14" y="-9" width="12" height="8" rx="3" fill="'+TICKET+'"/>'+
+  '</g>'+
+  '<g stroke="'+TICKET+'" stroke-width="3" stroke-linecap="round">'+
+   '<line x1="94" y1="8" x2="102" y2="2"/><line x1="88" y1="2" x2="90" y2="-6"/><line x1="100" y1="16" x2="110" y2="14"/></g>'
+);
+
+/* ================= words ================= */
+var WORDS=[
+ {w:"big wheel", d:"A very big wheel with seats. It turns slowly and takes you high up into the sky.",
+  e:"From the big wheel we could see the whole town."},
+ {w:"roller coaster", d:"A very fast ride on rails. It goes up, down and round, and everybody screams.",
+  e:"The roller coaster is fast and I love it!"},
+ {w:"roundabout", d:"A ride that goes round and round. You sit on a horse or in a little car.",
+  e:"My little sister always wants the roundabout."},
+ {w:"dodgem cars", d:"Little electric cars at a fair. You drive them and bump into your friends.",
+  e:"We drove the dodgem cars and bumped into Dad."},
+ {w:"band", d:"A group of people who play music together.",
+  e:"The band played in front of the town hall."},
+ {w:"mayor", d:"The most important person in a town. He or she opens fairs and gives prizes.",
+  e:"The mayor opened the fair at ten o'clock."},
+ {w:"microphone", d:"You speak or sing into it. It makes your voice loud.",
+  e:"The singer spoke into the microphone."},
+ {w:"journalist", d:"A person who writes about the news for a newspaper or a website.",
+  e:"A journalist asked us about the fair."},
+ {w:"photographer", d:"A person who takes photos, often for a newspaper.",
+  e:"The photographer took a photo of the winners."}
+];
+function find(w){for(var i=0;i<WORDS.length;i++){if(WORDS[i].w===w)return WORDS[i];}return null;}
+
+function shuffle(a){
+  var b=a.slice();
+  for(var i=b.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=b[i];b[i]=b[j];b[j]=t;}
+  return b;
+}
+function say(text){
+  if(!("speechSynthesis" in window))return;
+  try{
+    window.speechSynthesis.cancel();
+    var u=new SpeechSynthesisUtterance(text);
+    u.lang="en-GB"; u.rate=.85;
+    window.speechSynthesis.speak(u);
+  }catch(e){}
+}
+
+/* ================= tabs ================= */
+var tabs=document.querySelectorAll(".tab");
+for(var t=0;t<tabs.length;t++){
+  tabs[t].addEventListener("click",function(){
+    for(var i=0;i<tabs.length;i++){
+      tabs[i].setAttribute("aria-selected","false");
+      document.getElementById(tabs[i].dataset.p).classList.remove("on");
+    }
+    this.setAttribute("aria-selected","true");
+    document.getElementById(this.dataset.p).classList.add("on");
+    window.scrollTo({top:0,behavior:"smooth"});
+  });
+}
+
+/* ================= 1. cards ================= */
+(function(){
+  var grid=document.getElementById("cardGrid");
+  WORDS.forEach(function(o){
+    var b=document.createElement("button");
+    b.className="card"; b.type="button";
+    b.setAttribute("aria-label","Card: "+o.w);
+    b.innerHTML='<div class="inner">'+
+      '<div class="face front">'+PICS[o.w]+'<span class="word">'+o.w+'</span><span class="hint">tap to see the meaning</span></div>'+
+      '<div class="face back"><span class="word">'+o.w+'</span><p class="def">'+o.d+'</p>'+
+      '<p class="ex">'+o.e+'</p><button class="say" type="button" aria-label="Listen to '+o.w+'">&#9654;</button></div>'+
+      '</div>';
+    b.addEventListener("click",function(ev){
+      if(ev.target.closest(".say")){ ev.stopPropagation(); say(o.w+". "+o.d); return; }
+      b.classList.toggle("flipped");
+      if(b.classList.contains("flipped")) say(o.w);
+    });
+    grid.appendChild(b);
+  });
+})();
+
+/* ================= matching engine ================= */
+function makeMatch(leftEl,rightEl,leftItems,noteEl){
+  var pick=null, solved=0;
+  // clear old options
+  Array.prototype.slice.call(leftEl.querySelectorAll(".opt")).forEach(function(n){n.remove();});
+  Array.prototype.slice.call(rightEl.querySelectorAll(".opt")).forEach(function(n){n.remove();});
+  noteEl.textContent=""; noteEl.className="note";
+
+  shuffle(leftItems).forEach(function(it){
+    var b=document.createElement("button");
+    b.type="button"; b.className="opt"; b.dataset.w=it.w; b.innerHTML=it.html;
+    b.addEventListener("click",function(){
+      if(b.classList.contains("done"))return;
+      if(pick){pick.classList.remove("pick");}
+      pick=(pick===b)?null:b;
+      if(pick)pick.classList.add("pick");
+    });
+    leftEl.appendChild(b);
+  });
+
+  shuffle(leftItems).forEach(function(it){
+    var b=document.createElement("button");
+    b.type="button"; b.className="opt word-opt"; b.dataset.w=it.w; b.textContent=it.w;
+    b.addEventListener("click",function(){
+      if(b.classList.contains("done"))return;
+      say(it.w);
+      if(!pick){ noteEl.textContent="Choose from the left column first."; noteEl.className="note bad"; return; }
+      if(pick.dataset.w===it.w){
+        pick.classList.remove("pick"); pick.classList.add("done"); b.classList.add("done");
+        pick=null; solved++;
+        noteEl.className="note good";
+        noteEl.textContent = solved===leftItems.length ? "All nine pairs! Well done." : "Correct — "+solved+"/"+leftItems.length;
+      }else{
+        b.classList.add("bad"); var bad=pick; bad.classList.add("bad");
+        noteEl.textContent="Not that one. Look again."; noteEl.className="note bad";
+        setTimeout(function(){b.classList.remove("bad"); bad.classList.remove("bad");},400);
+      }
+    });
+    rightEl.appendChild(b);
+  });
+}
+
+function startPicMatch(){
+  makeMatch(document.getElementById("picCol"),document.getElementById("picWords"),
+    WORDS.map(function(o){return {w:o.w, html:PICS[o.w]};}),document.getElementById("note2"));
+}
+function startDefMatch(){
+  makeMatch(document.getElementById("defCol"),document.getElementById("defWords"),
+    WORDS.map(function(o){return {w:o.w, html:'<span>'+o.d+'</span>'};}),document.getElementById("note3"));
+}
+document.getElementById("reset2").addEventListener("click",startPicMatch);
+document.getElementById("reset3").addEventListener("click",startDefMatch);
+startPicMatch(); startDefMatch();
+
+/* ================= 4. story ================= */
+(function(){
+  var parts=[
+    "It's fair day in our town! At ten o'clock the ",{a:"mayor"}," speaks into a ",{a:"microphone"},
+    " and says, \u201CWelcome to the town fair!\u201D Then the ",{a:"band"}," starts to play music. ",
+    "First we go on the ",{a:"big wheel"},", and from the top we can see all the houses. ",
+    "Then Tom wants the ",{a:"roller coaster"}," \u2014 it goes so fast that we all scream! ",
+    "My little sister is scared, so we take her to the ",{a:"roundabout"},", and she sits on a white horse. ",
+    "After that we drive the ",{a:"dodgem cars"}," and bump into each other. ",
+    "A ",{a:"journalist"}," writes about the fair for the newspaper, and a ",{a:"photographer"},
+    " takes a photo of us. What a great day!"
+  ];
+  var storyEl=document.getElementById("story"), chipsEl=document.getElementById("storyChips");
+  var note=document.getElementById("note4");
+  var blanks=[], sel=null;
+
+  parts.forEach(function(p){
+    if(typeof p==="string"){ storyEl.appendChild(document.createTextNode(p)); return; }
+    var b=document.createElement("button");
+    b.type="button"; b.className="blank"; b.dataset.answer=p.a; b.dataset.filled="";
+    b.textContent="\u00A0?\u00A0";
+    b.addEventListener("click",function(){
+      if(b.dataset.filled){
+        var chip=chipsEl.querySelector('[data-w="'+b.dataset.filled+'"]');
+        if(chip)chip.classList.remove("used");
+        b.dataset.filled=""; b.textContent="\u00A0?\u00A0"; b.className="blank";
+      }
+      if(sel&&sel!==b)sel.classList.remove("sel");
+      sel=(sel===b)?null:b;
+      if(sel)sel.classList.add("sel");
+    });
+    storyEl.appendChild(b); blanks.push(b);
+  });
+
+  shuffle(WORDS).forEach(function(o){
+    var c=document.createElement("button");
+    c.type="button"; c.className="chip"; c.dataset.w=o.w; c.textContent=o.w;
+    c.addEventListener("click",function(){
+      say(o.w);
+      if(c.classList.contains("used"))return;
+      if(!sel){ note.textContent="Tap a gap in the story first."; note.className="note bad"; return; }
+      sel.dataset.filled=o.w; sel.textContent=o.w; sel.className="blank";
+      c.classList.add("used"); sel=null; note.textContent=""; note.className="note";
+    });
+    chipsEl.appendChild(c);
+  });
+
+  document.getElementById("checkStory").addEventListener("click",function(){
+    var right=0, empty=0;
+    blanks.forEach(function(b){
+      b.classList.remove("ok","no","sel");
+      if(!b.dataset.filled){empty++;return;}
+      if(b.dataset.filled===b.dataset.answer){b.classList.add("ok");right++;}
+      else b.classList.add("no");
+    });
+    if(empty){ note.textContent="Fill every gap first — "+empty+" to go."; note.className="note bad"; return; }
+    if(right===blanks.length){ note.textContent="Perfect! Nine out of nine. Now read the story out loud."; note.className="note good"; }
+    else { note.textContent=right+"/"+blanks.length+" correct. Tap the red gaps and try again."; note.className="note bad"; }
+  });
+})();
+
+/* ================= 5. quiz ================= */
+(function(){
+  var box=document.getElementById("qbox"), bar=document.getElementById("bar"), scoreEl=document.getElementById("score");
+  var qs=[], i=0, score=0, locked=false;
+
+  function options(correct,n){
+    var others=shuffle(WORDS.filter(function(o){return o.w!==correct;})).slice(0,n-1).map(function(o){return o.w;});
+    return shuffle(others.concat([correct]));
+  }
+  function build(){
+    var picked=shuffle(WORDS);
+    var list=[];
+    picked.slice(0,4).forEach(function(o){ list.push({t:"pic",w:o.w}); });
+    picked.slice(4,7).forEach(function(o){ list.push({t:"def",w:o.w}); });
+    picked.slice(7,9).forEach(function(o){ list.push({t:"letters",w:o.w}); });
+    list.push({t:"listen",w:picked[0].w});
+    qs=shuffle(list); i=0; score=0;
+  }
+  function progress(){ bar.style.width=Math.round(i/qs.length*100)+"%"; scoreEl.textContent="Tickets: "+score+" / "+qs.length; }
+
+  function next(){
+    locked=false;
+    if(i>=qs.length){ finish(); return; }
+    progress();
+    var q=qs[i], o=find(q.w);
+    box.innerHTML="";
+    var head=document.createElement("div");
+    if(q.t==="pic"){ head.innerHTML=PICS[o.w]+'<p class="qtext">What is it?</p>'; }
+    else if(q.t==="def"){ head.innerHTML='<p class="qtext">'+o.d+'</p>'; }
+    else if(q.t==="listen"){ head.innerHTML='<p class="qtext">Listen and choose the word.</p>'; }
+    else { head.innerHTML='<p class="qtext">'+o.d+'</p>'; }
+    box.appendChild(head);
+
+    if(q.t==="letters"){ lettersQ(o); }
+    else{
+      if(q.t==="listen"){
+        var play=document.createElement("button");
+        play.className="go quiet"; play.type="button"; play.textContent="Play the word";
+        play.addEventListener("click",function(){ say(o.w); });
+        box.appendChild(play); say(o.w);
+      }
+      var grid=document.createElement("div"); grid.className="qgrid";
+      options(o.w,4).forEach(function(w){
+        var b=document.createElement("button");
+        b.className="opt word-opt"; b.type="button"; b.textContent=w;
+        b.addEventListener("click",function(){
+          if(locked)return; locked=true;
+          if(w===o.w){ b.classList.add("done"); score++; say(o.w); }
+          else{ b.classList.add("bad"); Array.prototype.slice.call(grid.children).forEach(function(c){ if(c.textContent===o.w)c.classList.add("done"); }); }
+          setTimeout(function(){ i++; next(); },900);
+        });
+        grid.appendChild(b);
+      });
+      box.appendChild(grid);
+    }
+  }
+
+  function lettersQ(o){
+    var target=o.w, built="";
+    var line=document.createElement("div"); line.className="slotline"; line.textContent="\u00A0";
+    var tiles=document.createElement("div"); tiles.className="tiles";
+    box.appendChild(line); box.appendChild(tiles);
+
+    var chars=target.split("").filter(function(c){return c!==" ";});
+    shuffle(chars).forEach(function(ch){
+      var b=document.createElement("button");
+      b.className="tile"; b.type="button"; b.textContent=ch;
+      b.addEventListener("click",function(){
+        if(locked||b.classList.contains("used"))return;
+        b.classList.add("used"); built+=ch;
+        line.textContent=built;
+        var plain=target.replace(/ /g,"");
+        if(built.length===plain.length){
+          locked=true;
+          if(built===plain){ score++; line.textContent=target; say(target); }
+          else{ line.textContent=target; }
+          setTimeout(function(){ i++; next(); },1200);
+        }
+      });
+      tiles.appendChild(b);
+    });
+    var undo=document.createElement("button");
+    undo.className="go quiet"; undo.type="button"; undo.textContent="Start this word again";
+    undo.addEventListener("click",function(){
+      if(locked)return;
+      built=""; line.textContent="\u00A0";
+      Array.prototype.slice.call(tiles.children).forEach(function(c){c.classList.remove("used");});
+    });
+    box.appendChild(undo);
+  }
+
+  function finish(){
+    bar.style.width="100%";
+    scoreEl.textContent="Tickets: "+score+" / "+qs.length;
+    var msg = score===qs.length ? "Every ticket is yours. Fantastic!" :
+              score>=qs.length-2 ? "Great work — nearly all of them." :
+              "Good try. Go back to the cards and play again.";
+    box.innerHTML='<p class="result">'+score+' / '+qs.length+'</p><p class="qtext">'+msg+'</p>';
+    var again=document.createElement("button");
+    again.className="go"; again.type="button"; again.textContent="Play the quiz again";
+    again.addEventListener("click",function(){ build(); next(); });
+    box.appendChild(again);
+  }
+
+  build(); next();
+})();
+
+})();
+</script>
+</body>
+</html>
