@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SM4 U1</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Grenze+Gotisch:wght@700&family=Nunito:wght@500;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --azure:#1F3F99;
+  --azure-deep:#142A66;
+  --gold:#E9B632;
+  --gules:#C2332E;
+  --argent:#FFFFFF;
+  --stone:#EDEFF5;
+  --ink:#1A1F2E;
+  --muted:#5A6275;
+  --ok:#2E8B57;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--stone);color:var(--ink);font-family:"Nunito",system-ui,-apple-system,"Segoe UI",sans-serif;font-size:18px;line-height:1.45}
+header{background:var(--azure);color:var(--argent);padding:22px 20px 0;position:relative;overflow:hidden}
+header::after{content:"";position:absolute;left:0;right:0;bottom:0;height:14px;
+  background:repeating-linear-gradient(90deg,var(--gold) 0 28px,var(--azure-deep) 28px 56px)}
+.wrap{max-width:980px;margin:0 auto}
+h1{font-family:"Grenze Gotisch","Georgia",serif;font-size:clamp(52px,10vw,88px);line-height:.95;margin:0;color:var(--gold);letter-spacing:.5px}
+.sub{margin:6px 0 18px;opacity:.9;font-weight:700}
+nav{display:flex;gap:8px;padding-bottom:26px}
+nav button{font:inherit;font-weight:800;border:0;border-radius:12px 12px 4px 4px;padding:10px 18px;cursor:pointer;background:var(--azure-deep);color:var(--argent)}
+nav button[aria-selected="true"]{background:var(--gold);color:var(--azure-deep)}
+main{padding:24px 16px 48px}
+button:focus-visible{outline:3px solid var(--gules);outline-offset:3px}
+.bar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:18px}
+.btn{font:inherit;font-weight:800;border:2px solid var(--azure);background:var(--argent);color:var(--azure);border-radius:10px;padding:8px 16px;cursor:pointer}
+.btn.primary{background:var(--azure);color:var(--argent)}
+.hint{color:var(--muted);font-size:16px}
+
+/* Cards */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:16px}
+.card{position:relative;perspective:900px;height:250px;border:0;padding:0;background:none;cursor:pointer;font:inherit;text-align:center}
+.inner{position:relative;width:100%;height:100%;transition:transform .45s;transform-style:preserve-3d}
+.card.flipped .inner{transform:rotateY(180deg)}
+.face{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;border-radius:16px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:16px;border:3px solid var(--azure)}
+.front{background:var(--argent)}
+.back{background:var(--azure);color:var(--argent);transform:rotateY(180deg);border-color:var(--gold)}
+.face svg{width:110px;height:110px}
+.word{font-weight:800;font-size:26px;margin-top:8px;color:var(--azure-deep)}
+.def{font-size:20px;font-weight:700;line-height:1.35}
+.back .word{color:var(--gold);font-size:22px}
+
+.say{position:absolute;top:8px;right:8px;width:40px;height:40px;border-radius:50%;border:2px solid currentColor;background:transparent;color:inherit;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0}
+.front .say{color:var(--azure)} .back .say{color:var(--gold)}
+.say svg{width:22px;height:22px}
+.say:focus-visible{outline:3px solid var(--gules);outline-offset:2px}
+
+/* Quiz */
+.quiz{max-width:720px}
+.progress{height:10px;background:#D6DBE8;border-radius:6px;overflow:hidden;margin-bottom:18px}
+.progress span{display:block;height:100%;background:var(--gold);width:0;transition:width .3s}
+.clue{background:var(--argent);border-left:8px solid var(--gold);border-radius:12px;padding:22px 24px;font-size:26px;font-weight:800;color:var(--azure-deep);margin-bottom:18px}
+.qnum{font-size:16px;color:var(--muted);font-weight:700;margin-bottom:6px}
+.opts{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+.opt{font:inherit;font-weight:800;font-size:20px;background:var(--argent);border:3px solid #C9D0E0;border-radius:14px;padding:12px;cursor:pointer;display:flex;align-items:center;gap:12px;color:var(--ink);text-align:left}
+.opt svg{width:56px;height:56px;flex:none}
+.opt:hover:not(:disabled){border-color:var(--azure)}
+.opt.right{border-color:var(--ok);background:#E4F4EA}
+.opt.wrong{border-color:var(--gules);background:#FBE6E5}
+.opt:disabled{cursor:default}
+.feedback{min-height:32px;font-weight:800;margin:14px 0 6px;font-size:20px}
+.feedback.good{color:var(--ok)} .feedback.bad{color:var(--gules)}
+.result{background:var(--argent);border-radius:16px;padding:28px;text-align:center;border:3px solid var(--azure)}
+.result .big{font-family:"Grenze Gotisch",Georgia,serif;font-size:72px;color:var(--azure);line-height:1}
+.result ul{text-align:left;display:inline-block;margin:12px 0 18px;padding-left:20px}
+[hidden]{display:none!important}
+@media (max-width:560px){.opts{grid-template-columns:1fr}.clue{font-size:22px}}
+@media (prefers-reduced-motion:reduce){.inner,.progress span{transition:none}}
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <h1>SM4 U1</h1>
+    <p class="sub">Knights and queens: words</p>
+    <nav role="tablist">
+      <button role="tab" aria-selected="true" data-tab="cards">Cards</button>
+      <button role="tab" aria-selected="false" data-tab="quiz">Guess the word</button>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+  <section id="cards">
+    <div class="bar">
+      <button class="btn" id="modeBtn">Show definitions first</button>
+      <button class="btn" id="shuffleBtn">Shuffle</button>
+      <span class="hint">Tap a card to turn it over. Tap the speaker to listen.</span>
+    </div>
+    <div class="grid" id="grid"></div>
+  </section>
+
+  <section id="quiz" hidden>
+    <div class="quiz">
+      <div class="progress"><span id="prog"></span></div>
+      <div id="play">
+        <div class="qnum" id="qnum"></div>
+        <div class="clue" id="clue"></div>
+        <div class="opts" id="opts"></div>
+        <div class="feedback" id="fb" aria-live="polite"></div>
+        <button class="btn primary" id="nextBtn" hidden>Next</button>
+      </div>
+      <div class="result" id="result" hidden>
+        <div class="big" id="score"></div>
+        <p id="scoreText"></p>
+        <div id="mistakes"></div>
+        <button class="btn primary" id="againBtn">Play again</button>
+      </div>
+    </div>
+  </section>
+</main>
+
+<script>
+const ICONS = {
+sword:`<svg viewBox="0 0 100 100"><polygon points="50,6 57,18 57,64 43,64 43,18" fill="#C9D2E3" stroke="#1A1F2E" stroke-width="3" stroke-linejoin="round"/><line x1="50" y1="16" x2="50" y2="60" stroke="#8E99B0" stroke-width="2"/><rect x="28" y="63" width="44" height="8" rx="3" fill="#E9B632" stroke="#1A1F2E" stroke-width="3"/><rect x="45" y="71" width="10" height="16" fill="#7A4A26" stroke="#1A1F2E" stroke-width="3"/><circle cx="50" cy="91" r="5" fill="#E9B632" stroke="#1A1F2E" stroke-width="3"/></svg>`,
+bow:`<svg viewBox="0 0 100 100"><path d="M30 10 Q78 50 30 90" fill="none" stroke="#7A4A26" stroke-width="7" stroke-linecap="round"/><line x1="30" y1="10" x2="30" y2="90" stroke="#1A1F2E" stroke-width="2"/><line x1="16" y1="50" x2="86" y2="50" stroke="#1A1F2E" stroke-width="3"/><polygon points="94,50 82,43 82,57" fill="#8E99B0" stroke="#1A1F2E" stroke-width="2.5" stroke-linejoin="round"/><polygon points="12,42 22,50 12,58 18,50" fill="#C2332E" stroke="#1A1F2E" stroke-width="2" stroke-linejoin="round"/></svg>`,
+helmet:`<svg viewBox="0 0 100 100"><path d="M22 86 L22 44 Q22 12 50 12 Q78 12 78 44 L78 86 Z" fill="#C9D2E3" stroke="#1A1F2E" stroke-width="3.5" stroke-linejoin="round"/><rect x="28" y="44" width="44" height="7" rx="3" fill="#1A1F2E"/><line x1="50" y1="12" x2="50" y2="86" stroke="#8E99B0" stroke-width="3"/><circle cx="36" cy="66" r="2.5" fill="#1A1F2E"/><circle cx="36" cy="74" r="2.5" fill="#1A1F2E"/><circle cx="64" cy="66" r="2.5" fill="#1A1F2E"/><circle cx="64" cy="74" r="2.5" fill="#1A1F2E"/><path d="M50 12 Q56 2 66 4" fill="none" stroke="#C2332E" stroke-width="6" stroke-linecap="round"/></svg>`,
+crown:`<svg viewBox="0 0 100 100"><polygon points="12,74 16,30 34,52 50,22 66,52 84,30 88,74" fill="#E9B632" stroke="#1A1F2E" stroke-width="3.5" stroke-linejoin="round"/><rect x="12" y="72" width="76" height="12" rx="2" fill="#E9B632" stroke="#1A1F2E" stroke-width="3.5"/><circle cx="50" cy="60" r="6" fill="#C2332E" stroke="#1A1F2E" stroke-width="2"/><circle cx="30" cy="63" r="4" fill="#1F3F99" stroke="#1A1F2E" stroke-width="2"/><circle cx="70" cy="63" r="4" fill="#1F3F99" stroke="#1A1F2E" stroke-width="2"/><circle cx="16" cy="28" r="4" fill="#E9B632" stroke="#1A1F2E" stroke-width="2"/><circle cx="50" cy="20" r="4" fill="#E9B632" stroke="#1A1F2E" stroke-width="2"/><circle cx="84" cy="28" r="4" fill="#E9B632" stroke="#1A1F2E" stroke-width="2"/></svg>`,
+necklace:`<svg viewBox="0 0 100 100"><path d="M16 14 Q50 110 84 14" fill="none" stroke="#8E99B0" stroke-width="2"/><circle cx="22.8" cy="31.3" r="5" fill="#FFFFFF" stroke="#1A1F2E" stroke-width="2"/><circle cx="31.0" cy="46.9" r="5" fill="#FFFFFF" stroke="#1A1F2E" stroke-width="2"/><circle cx="39.1" cy="57.1" r="5" fill="#FFFFFF" stroke="#1A1F2E" stroke-width="2"/><circle cx="55.4" cy="60.8" r="5" fill="#FFFFFF" stroke="#1A1F2E" stroke-width="2"/><circle cx="63.6" cy="54.3" r="5" fill="#FFFFFF" stroke="#1A1F2E" stroke-width="2"/><circle cx="71.8" cy="42.3" r="5" fill="#FFFFFF" stroke="#1A1F2E" stroke-width="2"/><circle cx="79.9" cy="24.8" r="5" fill="#FFFFFF" stroke="#1A1F2E" stroke-width="2"/><path d="M50 64 L60 77 L50 92 L40 77 Z" fill="#C2332E" stroke="#1A1F2E" stroke-width="3" stroke-linejoin="round"/></svg>`,
+belt:`<svg viewBox="0 0 100 100"><rect x="4" y="40" width="92" height="20" rx="3" fill="#7A4A26" stroke="#1A1F2E" stroke-width="3"/><rect x="30" y="33" width="28" height="34" rx="4" fill="none" stroke="#E9B632" stroke-width="6"/><line x1="44" y1="50" x2="66" y2="50" stroke="#E9B632" stroke-width="4" stroke-linecap="round"/><circle cx="74" cy="50" r="2.5" fill="#1A1F2E"/><circle cx="82" cy="50" r="2.5" fill="#1A1F2E"/><circle cx="90" cy="50" r="2.5" fill="#1A1F2E"/></svg>`,
+bracelet:`<svg viewBox="0 0 100 100"><ellipse cx="50" cy="52" rx="36" ry="22" fill="none" stroke="#E9B632" stroke-width="8"/><ellipse cx="50" cy="52" rx="36" ry="22" fill="none" stroke="#1A1F2E" stroke-width="1.5"/><circle cx="50" cy="74" r="7" fill="#1F3F99" stroke="#1A1F2E" stroke-width="2.5"/><circle cx="24" cy="67" r="5" fill="#C2332E" stroke="#1A1F2E" stroke-width="2"/><circle cx="76" cy="67" r="5" fill="#C2332E" stroke="#1A1F2E" stroke-width="2"/></svg>`,
+shield:`<svg viewBox="0 0 100 100"><path d="M50 6 L86 18 L86 46 Q86 78 50 94 Q14 78 14 46 L14 18 Z" fill="#1F3F99" stroke="#1A1F2E" stroke-width="3.5" stroke-linejoin="round"/><path d="M50 6 L86 18 L86 46 Q86 78 50 94 Z" fill="#C2332E"/><path d="M50 6 L86 18 L86 46 Q86 78 50 94 Q14 78 14 46 L14 18 Z" fill="none" stroke="#1A1F2E" stroke-width="3.5" stroke-linejoin="round"/><rect x="45" y="14" width="10" height="72" fill="#E9B632"/><rect x="18" y="40" width="64" height="10" fill="#E9B632"/></svg>`,
+knight:`<svg viewBox="0 0 100 100"><path d="M36 38 L36 20 Q36 6 50 6 Q64 6 64 20 L64 38 Z" fill="#C9D2E3" stroke="#1A1F2E" stroke-width="3" stroke-linejoin="round"/><rect x="40" y="20" width="20" height="4" fill="#1A1F2E"/><path d="M30 40 L70 40 L74 88 L26 88 Z" fill="#C9D2E3" stroke="#1A1F2E" stroke-width="3" stroke-linejoin="round"/><line x1="82" y1="18" x2="82" y2="64" stroke="#1A1F2E" stroke-width="4"/><rect x="76" y="62" width="12" height="4" fill="#E9B632" stroke="#1A1F2E" stroke-width="1.5"/><path d="M12 46 L36 46 L36 64 Q36 78 24 84 Q12 78 12 64 Z" fill="#1F3F99" stroke="#1A1F2E" stroke-width="3" stroke-linejoin="round"/><rect x="21.5" y="50" width="5" height="28" fill="#E9B632"/><rect x="14" y="58" width="20" height="5" fill="#E9B632"/></svg>`,
+queen:`<svg viewBox="0 0 100 100"><path d="M26 96 L38 54 L62 54 L74 96 Z" fill="#C2332E" stroke="#1A1F2E" stroke-width="3" stroke-linejoin="round"/><path d="M32 40 Q30 64 40 60 L60 60 Q70 64 68 40 Z" fill="#7A4A26" stroke="#1A1F2E" stroke-width="2.5"/><circle cx="50" cy="38" r="15" fill="#F6D2B5" stroke="#1A1F2E" stroke-width="3"/><circle cx="45" cy="37" r="2" fill="#1A1F2E"/><circle cx="55" cy="37" r="2" fill="#1A1F2E"/><path d="M45 44 Q50 48 55 44" fill="none" stroke="#1A1F2E" stroke-width="2" stroke-linecap="round"/><polygon points="36,24 38,8 44,16 50,4 56,16 62,8 64,24" fill="#E9B632" stroke="#1A1F2E" stroke-width="2.5" stroke-linejoin="round"/></svg>`
+};
+
+const WORDS = [
+  {id:"sword",    word:"sword",          def:"Knights fight with it. It is long and sharp."},
+  {id:"bow",      word:"bow and arrow",  def:"You shoot with them at a target."},
+  {id:"helmet",   word:"helmet",         def:"You wear it on your head. It protects your head."},
+  {id:"crown",    word:"crown",          def:"A king or a queen wears it on their head."},
+  {id:"necklace", word:"necklace",       def:"You wear it around your neck."},
+  {id:"belt",     word:"belt",           def:"It holds up your trousers or jeans."},
+  {id:"bracelet", word:"bracelet",       def:"You wear it on your wrist."},
+  {id:"shield",   word:"shield",         def:"A knight holds it. It protects him from a sword."},
+  {id:"knight",   word:"a knight",       def:"He's a man with a sword, a shield and a helmet."},
+  {id:"queen",    word:"a queen",        def:"She's a woman with a crown. She lives in a castle."}
+];
+
+const shuffle = a => { const b=[...a]; for(let i=b.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[b[i],b[j]]=[b[j],b[i]]} return b; };
+
+/* Tabs */
+document.querySelectorAll('nav button').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    document.querySelectorAll('nav button').forEach(b=>b.setAttribute('aria-selected', b===btn));
+    document.getElementById('cards').hidden = btn.dataset.tab!=='cards';
+    document.getElementById('quiz').hidden  = btn.dataset.tab!=='quiz';
+    if(btn.dataset.tab==='quiz' && !started) startQuiz();
+  });
+});
+
+/* Cards */
+let defFirst=false, order=[...WORDS];
+const SPK='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/><path d="M16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
+let enVoice=null;
+function pickVoice(){
+  if(!('speechSynthesis' in window)) return;
+  const v=speechSynthesis.getVoices().filter(x=>/^en/i.test(x.lang));
+  enVoice=v.find(x=>/en-GB/i.test(x.lang))||v.find(x=>/en-US/i.test(x.lang))||v[0]||null;
+}
+if('speechSynthesis' in window){pickVoice(); speechSynthesis.onvoiceschanged=pickVoice;}
+function speak(text){
+  if(!('speechSynthesis' in window)) return;
+  speechSynthesis.cancel();
+  const u=new SpeechSynthesisUtterance(text);
+  u.lang=enVoice?enVoice.lang:'en-GB'; if(enVoice) u.voice=enVoice; u.rate=0.85;
+  speechSynthesis.speak(u);
+}
+const sayBtn=(text)=>`<button class="say" type="button" data-say="${text}" aria-label="Listen: ${text}">${SPK}</button>`;
+function renderCards(){
+  const grid=document.getElementById('grid'); grid.innerHTML='';
+  order.forEach(w=>{
+    const wordFace=`<div class="face front">${sayBtn(w.word)}${ICONS[w.id]}<div class="word">${w.word}</div></div>`;
+    const defFace=`<div class="face ${defFirst?'front':'back'}">${sayBtn(w.def)}<div class="def">${w.def}</div></div>`;
+    const wordBack=`<div class="face back">${sayBtn(w.word)}${ICONS[w.id]}<div class="word">${w.word}</div></div>`;
+    const card=document.createElement('div');
+    card.className='card'; card.tabIndex=0; card.setAttribute('role','button');
+    card.setAttribute('aria-label', defFirst ? 'Definition card: '+w.def : 'Word card: '+w.word);
+    card.innerHTML=`<div class="inner">${defFirst ? defFace+wordBack : wordFace+defFace}</div>`;
+    card.addEventListener('click',e=>{
+      const b=e.target.closest('.say');
+      if(b){e.stopPropagation(); speak(b.dataset.say); return;}
+      card.classList.toggle('flipped');
+    });
+    card.addEventListener('keydown',e=>{
+      if(e.target!==card) return;
+      if(e.key==='Enter'||e.key===' '){e.preventDefault(); card.classList.toggle('flipped');}
+    });
+    grid.appendChild(card);
+  });
+}
+document.getElementById('modeBtn').addEventListener('click',e=>{
+  defFirst=!defFirst;
+  e.target.textContent = defFirst ? 'Show words first' : 'Show definitions first';
+  renderCards();
+});
+document.getElementById('shuffleBtn').addEventListener('click',()=>{order=shuffle(WORDS);renderCards();});
+renderCards();
+
+/* Quiz */
+let started=false, qs=[], qi=0, score=0, missed=[];
+function startQuiz(){
+  started=true; qs=shuffle(WORDS); qi=0; score=0; missed=[];
+  document.getElementById('play').hidden=false;
+  document.getElementById('result').hidden=true;
+  showQ();
+}
+function showQ(){
+  const q=qs[qi];
+  document.getElementById('prog').style.width=(qi/qs.length*100)+'%';
+  document.getElementById('qnum').textContent=`Question ${qi+1} of ${qs.length}`;
+  document.getElementById('clue').textContent=q.def;
+  const fb=document.getElementById('fb'); fb.textContent=''; fb.className='feedback';
+  document.getElementById('nextBtn').hidden=true;
+  const others=shuffle(WORDS.filter(w=>w.id!==q.id)).slice(0,3);
+  const opts=document.getElementById('opts'); opts.innerHTML='';
+  shuffle([q,...others]).forEach(o=>{
+    const b=document.createElement('button');
+    b.className='opt'; b.dataset.id=o.id;
+    b.innerHTML=`${ICONS[o.id]}<span>${o.word}</span>`;
+    b.addEventListener('click',()=>answer(o.id));
+    opts.appendChild(b);
+  });
+}
+function answer(id){
+  const q=qs[qi];
+  document.querySelectorAll('.opt').forEach(b=>{
+    b.disabled=true;
+    if(b.dataset.id===q.id) b.classList.add('right');
+    else if(b.dataset.id===id) b.classList.add('wrong');
+  });
+  const fb=document.getElementById('fb');
+  if(id===q.id){score++; fb.textContent='Well done!'; fb.className='feedback good';}
+  else{missed.push(q); fb.textContent=`Not quite. It's ${q.word}.`; fb.className='feedback bad';}
+  const next=document.getElementById('nextBtn');
+  next.textContent = qi===qs.length-1 ? 'See my score' : 'Next';
+  next.hidden=false; next.focus();
+}
+document.getElementById('nextBtn').addEventListener('click',()=>{
+  qi++;
+  if(qi<qs.length){showQ();return;}
+  document.getElementById('prog').style.width='100%';
+  document.getElementById('play').hidden=true;
+  document.getElementById('result').hidden=false;
+  document.getElementById('score').textContent=`${score} / ${qs.length}`;
+  document.getElementById('scoreText').textContent =
+    score===qs.length ? 'Perfect! You are a real knight of words.' :
+    score>=7 ? 'Great job! Look at these words again:' : 'Good try! Look at these words again:';
+  document.getElementById('mistakes').innerHTML = missed.length
+    ? '<ul>'+missed.map(m=>`<li><b>${m.word}</b>: ${m.def}</li>`).join('')+'</ul>' : '';
+});
+document.getElementById('againBtn').addEventListener('click',startQuiz);
+</script>
+</body>
+</html>
