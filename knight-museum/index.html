@@ -1,0 +1,939 @@
+<!DOCTYPE html>
+<html lang="ru" translate="no">
+<head>
+<meta charset="utf-8">
+<meta name="google" content="notranslate">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>The Knight in the Museum — тренажёр Super Minds 4</title>
+<style>
+:root{
+  --hall:#22304A;
+  --hall-2:#161F33;
+  --stone:#34466A;
+  --gold:#F0B429;
+  --gold-dark:#A87A12;
+  --shield:#A2342C;
+  --shield-dark:#6E1F1A;
+  --scroll:#FFF4DA;
+  --ink:#241C12;
+  --teal:#4CC2BC;
+  --ok:#2E8F4F;
+  --ok-soft:#E1F3E6;
+  --no:#C9423A;
+  --no-soft:#FBE3E0;
+  --mist:#C3CCE0;
+  --sans:"Trebuchet MS","Segoe UI",system-ui,-apple-system,Verdana,sans-serif;
+  --serif:Georgia,"Times New Roman",serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+html{-webkit-text-size-adjust:100%}
+body{
+  font-family:var(--sans);
+  color:#EEF2FA;
+  background:var(--hall-2);
+  background-image:
+    repeating-linear-gradient(90deg,rgba(255,255,255,.025) 0 70px,rgba(0,0,0,0) 70px 210px),
+    linear-gradient(180deg,var(--hall) 0%,var(--hall-2) 100%);
+  background-attachment:fixed;
+  min-height:100vh;
+}
+.wrap{max-width:1000px;margin:0 auto;padding:calc(18px + env(safe-area-inset-top,0px)) 16px calc(64px + env(safe-area-inset-bottom,0px))}
+.en{font-family:var(--serif)}
+
+/* ---------- header ---------- */
+header{display:flex;align-items:center;justify-content:center;gap:16px;margin:8px 0 20px;text-align:left}
+header svg{width:70px;height:84px;flex:none}
+h1{font-family:var(--serif);font-size:clamp(27px,6vw,46px);line-height:1.05;margin:0;color:var(--gold);letter-spacing:-.01em}
+.sub{margin:6px 0 0;color:var(--mist);font-size:15px;line-height:1.4}
+
+/* ---------- tabs ---------- */
+nav{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin:0 0 24px}
+.tab{
+  position:relative;font-family:inherit;font-size:15px;font-weight:bold;
+  color:var(--ink);background:var(--scroll);border:0;
+  padding:11px 16px 11px 42px;border-radius:8px;cursor:pointer;
+  box-shadow:0 3px 0 rgba(0,0,0,.4);
+}
+.tab::before{
+  content:attr(data-n);position:absolute;left:9px;top:50%;transform:translateY(-50%);
+  width:25px;height:25px;border-radius:50%;background:var(--shield);color:#fff;
+  display:grid;place-items:center;font-size:13px;
+}
+.tab[aria-selected="true"]{background:var(--gold);transform:translateY(1px);box-shadow:0 2px 0 rgba(0,0,0,.5)}
+.tab:focus-visible{outline:3px solid var(--teal);outline-offset:3px}
+
+.panel{display:none}
+.panel.on{display:block}
+.lead{max-width:60ch;margin:0 auto 22px;text-align:center;color:#DCE3F2;font-size:17px;line-height:1.5}
+
+/* ---------- cards ---------- */
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px}
+.card{perspective:1000px;cursor:pointer;border-radius:16px;outline:none}
+.card:focus-visible .face{outline:3px solid var(--teal);outline-offset:3px}
+.inner{position:relative;width:100%;height:270px;transition:transform .5s;transform-style:preserve-3d}
+.card.flipped .inner{transform:rotateY(180deg)}
+.face{
+  position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;
+  border-radius:16px;padding:16px;display:flex;flex-direction:column;gap:8px;
+  box-shadow:0 6px 0 rgba(0,0,0,.4);
+}
+.front{background:var(--scroll);color:var(--ink);align-items:center;justify-content:center;text-align:center}
+.front .phrase{font-family:var(--serif);font-weight:bold;font-size:23px;line-height:1.25;margin:0}
+.front .hint{font-size:13px;color:#7A6A4F;margin:0}
+.back{background:var(--shield);color:#fff;transform:rotateY(180deg)}
+.back .ru{font-size:19px;font-weight:bold;line-height:1.3;margin:0;color:#FFE3A1}
+.back .note{font-size:14.5px;line-height:1.42;margin:0}
+.back .exrow{margin-top:auto;display:flex;align-items:flex-end;gap:8px}
+.back .ex{font-family:var(--serif);font-style:italic;font-size:15px;line-height:1.35;margin:0;flex:1}
+.say{
+  flex:none;border:0;cursor:pointer;width:42px;height:42px;border-radius:50%;
+  font-size:18px;line-height:1;display:inline-grid;place-items:center;
+  background:var(--hall);color:#fff;vertical-align:middle;
+}
+.back .say{background:var(--shield-dark)}
+.say:focus-visible{outline:3px solid var(--teal);outline-offset:2px}
+
+/* ---------- quiz ---------- */
+.quiz{max-width:680px;margin:0 auto}
+.bar{height:10px;background:var(--stone);border-radius:999px;overflow:hidden;margin:0 0 8px}
+.bar i{display:block;height:100%;width:0;background:var(--gold);transition:width .3s}
+.meta{margin:0 0 14px;color:var(--mist);font-size:15px;text-align:center}
+.qbox{background:var(--scroll);color:var(--ink);border-radius:18px;padding:22px;box-shadow:0 6px 0 rgba(0,0,0,.4)}
+.qlead{margin:0 0 8px;font-size:15px;color:#6B5B40;line-height:1.45}
+.qtext{margin:0 0 6px;font-size:21px;line-height:1.5}
+.qtext.big{font-size:28px;font-weight:bold}
+.qtext .say{margin-left:6px;width:40px;height:40px;font-size:17px}
+.ask{margin:6px 0 0;font-size:16px;color:#6B5B40}
+.gap{
+  display:inline-block;min-width:74px;text-align:center;
+  border-bottom:3px dashed var(--gold-dark);background:#FBE7B3;
+  padding:0 8px;border-radius:6px 6px 0 0;font-weight:bold;
+}
+.gap.g-ok{background:var(--ok-soft);border-bottom:3px solid var(--ok);color:var(--ok)}
+.gap.g-no{background:var(--no-soft);border-bottom:3px solid var(--no);color:var(--no)}
+.opts{display:grid;gap:10px;margin-top:18px}
+.opt{
+  font-family:inherit;font-size:18px;line-height:1.35;text-align:left;cursor:pointer;
+  background:#fff;color:var(--ink);border:3px solid #E6D6AE;border-radius:14px;padding:12px 14px;
+}
+.opt.en{font-family:var(--serif);font-weight:bold}
+.opt:hover:not(:disabled){border-color:var(--gold)}
+.opt:focus-visible{outline:3px solid var(--teal);outline-offset:2px}
+.opt:disabled{cursor:default}
+.opt.right{background:var(--ok);border-color:var(--ok);color:#fff}
+.opt.wrong{background:var(--no);border-color:var(--no);color:#fff}
+.opt.dim{opacity:.45}
+
+/* ---------- feedback ---------- */
+.fb{margin-top:18px;border-radius:14px;padding:16px 16px 12px;border:3px solid var(--ok);background:var(--ok-soft)}
+.fb.no{border-color:var(--no);background:var(--no-soft)}
+.fb p{margin:0 0 10px;font-size:16px;line-height:1.5}
+.fb-head{font-size:19px!important;font-weight:bold;color:var(--ok)}
+.fb.no .fb-head{color:var(--no)}
+.fb-head .en{color:var(--ink)}
+.fb b{color:#4A3A20}
+.fb-sub{font-weight:bold;color:#4A3A20;margin-top:4px!important}
+.fb-other{padding-left:12px;border-left:3px solid #D8C49A}
+.fb-other.picked{border-left-color:var(--no)}
+.fb-other .fb-opt{font-weight:bold}
+.tag{font-size:13px;color:var(--no);font-weight:bold}
+.row{display:flex;flex-wrap:wrap;gap:10px;justify-content:flex-end;margin-top:6px}
+
+/* ---------- buttons ---------- */
+.go{
+  font-family:inherit;font-size:16px;font-weight:bold;cursor:pointer;
+  background:var(--shield);color:#fff;border:0;
+  padding:12px 22px;border-radius:999px;box-shadow:0 4px 0 var(--shield-dark);
+  white-space:nowrap;
+}
+.go.quiet{background:var(--hall);box-shadow:0 4px 0 #0D1322}
+.go:disabled{opacity:.45;cursor:default}
+.go:focus-visible{outline:3px solid var(--teal);outline-offset:3px}
+
+/* ---------- build ---------- */
+.line{
+  min-height:64px;display:flex;flex-wrap:wrap;gap:8px;align-items:center;
+  border:3px dashed #D8C49A;border-radius:14px;padding:10px;margin-top:14px;background:#fff;
+}
+.line.ok{border-style:solid;border-color:var(--ok)}
+.line.no{border-style:solid;border-color:var(--no)}
+.pool{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin:14px 0 12px}
+.tok{
+  font-family:var(--serif);font-size:19px;font-weight:bold;cursor:pointer;
+  background:var(--gold);color:var(--ink);border:0;border-radius:10px;padding:9px 13px;
+  box-shadow:0 3px 0 var(--gold-dark);
+}
+.tok.used{visibility:hidden}
+.line .tok{background:var(--hall);color:#fff;box-shadow:0 3px 0 #0D1322}
+.tok:focus-visible{outline:3px solid var(--teal);outline-offset:2px}
+.tok:disabled{cursor:default}
+
+/* ---------- result ---------- */
+.result{text-align:center}
+.result .big{font-family:var(--serif);font-size:44px;font-weight:bold;margin:4px 0;color:var(--shield)}
+.result p{font-size:18px;line-height:1.5;margin:0 0 8px}
+.result .row{justify-content:center;margin-top:14px}
+
+@media (max-width:600px){
+  header{gap:12px}
+  header svg{width:54px;height:66px}
+  .qbox{padding:16px}
+  .qtext{font-size:19px}
+  .qtext.big{font-size:24px}
+  .opt{font-size:17px}
+  .row{justify-content:stretch}
+  .row .go{flex:1;padding:12px 14px}
+}
+@media (prefers-reduced-motion:reduce){
+  *{transition:none!important;animation:none!important;scroll-behavior:auto!important}
+}
+</style>
+</head>
+<body class="notranslate">
+<div class="wrap">
+
+<header>
+  <svg viewBox="0 0 100 120" aria-hidden="true">
+    <path d="M50 4 L94 16 V56 C94 86 74 106 50 116 C26 106 6 86 6 56 V16 Z" fill="#A2342C" stroke="#F0B429" stroke-width="5" stroke-linejoin="round"/>
+    <path d="M14 28 L86 92" stroke="#F0B429" stroke-width="13" stroke-linecap="round"/>
+    <path d="M14 28 L86 92" stroke="#FFF4DA" stroke-width="3" stroke-dasharray="4 5" stroke-linecap="round"/>
+    <circle cx="70" cy="34" r="7" fill="#F0B429"/>
+    <circle cx="30" cy="82" r="7" fill="#F0B429"/>
+  </svg>
+  <div>
+    <h1 lang="en">The Knight in the Museum</h1>
+    <p class="sub">15 слов и выражений из истории. Super Minds 4, Unit 1</p>
+  </div>
+</header>
+
+<nav role="tablist" aria-label="Задания">
+  <button class="tab" role="tab" data-n="1" data-p="p1" aria-selected="true">Карточки</button>
+  <button class="tab" role="tab" data-n="2" data-p="p2" aria-selected="false">Что это значит?</button>
+  <button class="tab" role="tab" data-n="3" data-p="p3" aria-selected="false">Вспомни историю</button>
+  <button class="tab" role="tab" data-n="4" data-p="p4" aria-selected="false">Что ты скажешь?</button>
+  <button class="tab" role="tab" data-n="5" data-p="p5" aria-selected="false">Собери фразу</button>
+</nav>
+
+<section class="panel on" id="p1" role="tabpanel">
+  <p class="lead">Нажми 🔊 и послушай, как говорят по-английски. Потом нажми на карточку: на обороте — перевод, подсказка и пример.</p>
+  <div class="cards" id="cardGrid"></div>
+</section>
+
+<section class="panel" id="p2" role="tabpanel">
+  <p class="lead">Выбери правильный перевод. После ответа прочитай пояснение и нажми «Дальше».</p>
+  <div class="quiz" id="q2"><div class="bar"><i></i></div><p class="meta"></p><div class="qbox"></div></div>
+</section>
+
+<section class="panel" id="p3" role="tabpanel">
+  <p class="lead">Вспомни, что случилось в музее. Выбери слово для пропуска и прочитай, почему подходит именно оно.</p>
+  <div class="quiz" id="q3"><div class="bar"><i></i></div><p class="meta"></p><div class="qbox"></div></div>
+</section>
+
+<section class="panel" id="p4" role="tabpanel">
+  <p class="lead">Прочитай ситуацию и выбери, что сказать по-английски.</p>
+  <div class="quiz" id="q4"><div class="bar"><i></i></div><p class="meta"></p><div class="qbox"></div></div>
+</section>
+
+<section class="panel" id="p5" role="tabpanel">
+  <p class="lead">Нажимай на слова по порядку и собери фразу. Ошибка? Нажми на слово в строке, и оно вернётся назад.</p>
+  <div class="quiz" id="q5"><div class="bar"><i></i></div><p class="meta"></p><div class="qbox"></div></div>
+</section>
+
+</div>
+
+<script>
+(function(){
+"use strict";
+
+/* ================= helpers ================= */
+function esc(s){
+  return String(s).replace(/[&<>"]/g,function(c){
+    return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[c];
+  });
+}
+function shuffle(a){
+  var b=a.slice();
+  for(var i=b.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=b[i];b[i]=b[j];b[j]=t;}
+  return b;
+}
+function el(tag,cls,text){
+  var e=document.createElement(tag);
+  if(cls)e.className=cls;
+  if(text!=null)e.textContent=text;
+  return e;
+}
+var reduceMotion=false;
+try{ reduceMotion=window.matchMedia("(prefers-reduced-motion: reduce)").matches; }catch(e){}
+function reveal(node){
+  try{ node.scrollIntoView({behavior:reduceMotion?"auto":"smooth",block:"nearest"}); }catch(e){ node.scrollIntoView(false); }
+}
+
+/* ================= audio ================= */
+var VOICE=null;
+function pickVoice(){
+  try{
+    var vs=window.speechSynthesis.getVoices(), gb=null, en=null;
+    for(var i=0;i<vs.length;i++){
+      var l=(vs[i].lang||"").replace("_","-").toLowerCase();
+      if(!gb && l==="en-gb")gb=vs[i];
+      if(!en && l.indexOf("en")===0)en=vs[i];
+    }
+    VOICE=gb||en;
+  }catch(e){}
+}
+if("speechSynthesis" in window){
+  pickVoice();
+  try{ window.speechSynthesis.addEventListener("voiceschanged",pickVoice); }catch(e){ window.speechSynthesis.onvoiceschanged=pickVoice; }
+}
+function say(text){
+  if(!("speechSynthesis" in window))return;
+  try{
+    window.speechSynthesis.cancel();
+    var u=new SpeechSynthesisUtterance(text);
+    u.lang="en-GB"; u.rate=.85;
+    if(VOICE)u.voice=VOICE;
+    window.speechSynthesis.speak(u);
+  }catch(e){}
+}
+function sayBtn(text,label){
+  var b=el("button","say","🔊");
+  b.type="button";
+  b.setAttribute("aria-label",label||("Послушать: "+text));
+  b.addEventListener("click",function(ev){ ev.stopPropagation(); say(text); });
+  return b;
+}
+
+/* ================= data: cards ================= */
+var CARDS=[
+ {en:"the first line", ru:"первая строчка",
+  note:"line — строка, строчка в стихах, песне или тексте.",
+  ex:"Read the first line of the poem."},
+ {en:"rhyme", ru:"стишок (в рифму)",
+  note:"Читается [raɪm]. Короткое стихотворение, где слова рифмуются.",
+  ex:"We know a funny rhyme about a cat."},
+ {en:"hope", ru:"надеяться",
+  note:"I really hope… — Я очень надеюсь… После hope про будущее часто ставим обычное настоящее время.",
+  ex:"I really hope we win the game."},
+ {en:"here", ru:"здесь, тут",
+  note:"Не путай с hear — «слышать». Звучат одинаково, а пишутся по-разному!",
+  ex:"Come here and look at this!"},
+ {en:"That was close!", ru:"Чуть не попало! Еле пронесло!",
+  note:"close [kləʊs] — близко. Так говорят, когда опасность прошла совсем рядом.",
+  ex:"The ball nearly hit me. That was close!"},
+ {en:"Someone is trying to hurt us.", ru:"Кто-то пытается нам навредить.",
+  note:"someone — кто-то; is trying to — пытается; hurt — сделать больно, навредить.",
+  ex:"Look out! Someone is trying to hurt us!"},
+ {en:"I can't see anyone.", ru:"Я никого не вижу.",
+  note:"В английском только одно «не»: can't + anyone.",
+  ex:"It's very dark. I can't see anyone."},
+ {en:"He's coming after us.", ru:"Он гонится за нами.",
+  note:"come after someone — бежать за кем-то, чтобы поймать.",
+  ex:"Run! The big dog is coming after us!"},
+ {en:"a good place to hide", ru:"хорошее место, чтобы спрятаться",
+  note:"place to + глагол — место, где можно что-то сделать.",
+  ex:"The old tree is a good place to hide."},
+ {en:"We mustn't make a noise.", ru:"Нам нельзя шуметь.",
+  note:"mustn't — нельзя. Шуметь — make a noise (не do a noise!).",
+  ex:"The baby is asleep. We mustn't make a noise."},
+ {en:"Hold the lead.", ru:"Держи поводок.",
+  note:"lead [liːd] — поводок для собаки.",
+  ex:"Hold the lead. Don't let the dog run away."},
+ {en:"I'm glad it worked.", ru:"Я рад(а), что это сработало.",
+  note:"glad — рад; it worked — сработало, получилось.",
+  ex:"My plan was good. I'm glad it worked!"},
+ {en:"in the frame", ru:"в рамке",
+  note:"frame — рамка; in — в, внутри.",
+  ex:"There's a photo of my cat in the frame."},
+ {en:"poor", ru:"бедный, бедняжка",
+  note:"Так говорят, когда кого-то жалко: Poor Horax! — Бедный Хоракс!",
+  ex:"Poor kitten! It's cold and wet."},
+ {en:"Terrible!", ru:"Ужасно!",
+  note:"Ответ на How do you feel?, когда очень плохо. Не путай с «терпимо»!",
+  ex:"How do you feel? Terrible! My head hurts."}
+];
+
+/* ================= data: 2. meaning =================
+   opts: [text, 1 = correct / 0 = wrong, note for a wrong option] */
+var MEANING=[
+ {q:"the first line", sayQ:"the first line",
+  opts:[["первая строчка",1],
+        ["первая рифма",0,"рифма, стишок — это rhyme."],
+        ["первая рамка",0,"рамка — это frame."]],
+  why:"line — строка, строчка (в стихах, песнях, тексте). the first line — первая строчка. В истории дети ищут первую строчку стишка-подсказки."},
+ {q:"rhyme", sayQ:"rhyme",
+  opts:[["стишок (в рифму)",1],
+        ["карта",0,"карта — это map. Её хотят забрать у детей Зельда и Хоракс."],
+        ["рамка",0,"рамка — это frame."]],
+  why:"rhyme [raɪm] — короткий стишок, в котором слова рифмуются. В истории стишок — подсказка, и дети собирают его по строчкам."},
+ {q:"I really hope", sayQ:"I really hope",
+  opts:[["Я очень надеюсь",1],
+        ["Я очень боюсь",0,"«боюсь» — это I'm scared или I'm afraid."],
+        ["Я правда помогаю",0,"«помогать» — это help. Не путай hope и help!"]],
+  why:"hope — надеяться, а really делает слово сильнее: really hope — очень надеюсь."},
+ {q:"here", sayQ:"here",
+  opts:[["здесь, тут",1],
+        ["слышать",0,"«слышать» — это hear. Звучит точно так же, как here, но пишется по-другому!"],
+        ["там",0,"«там» — это there."]],
+  why:"here — здесь, тут. Например: Come here! — Иди сюда!"},
+ {q:"That was close!", sayQ:"That was close!",
+  opts:[["Чуть не попало! Еле пронесло!",1],
+        ["Это было закрыто!",0,"«закрыто» — это closed. Там звук [z]: [kləʊzd]."],
+        ["Это было далеко!",0,"«далеко» — это far. А close, наоборот, значит «близко»."]],
+  why:"close [kləʊs] со звуком [s] значит «близко». That was close! говорят, когда опасность прошла совсем рядом: «Чуть не попало!»"},
+ {q:"Someone is trying to hurt us.", sayQ:"Someone is trying to hurt us.",
+  opts:[["Кто-то пытается нам навредить.",1],
+        ["Кто-то пытается нам помочь.",0,"«помочь» — это help. А hurt — сделать больно, навредить."],
+        ["Никто нас не обижает.",0,"«никто» — это no one. А someone — «кто-то»."]],
+  why:"someone — кто-то; is trying to — пытается (прямо сейчас); hurt — сделать больно, навредить."},
+ {q:"I can't see anyone.", sayQ:"I can't see anyone.",
+  opts:[["Я никого не вижу.",1],
+        ["Я кого-то вижу.",0,"Так было бы I can see someone. А в нашей фразе есть can't — «не»."],
+        ["Я не могу найти карту.",0,"«найти» — find, «карта» — map. Таких слов во фразе нет."]],
+  why:"can't see — не вижу; anyone — кого-нибудь. По-русски мы говорим «не» два раза: НИкого НЕ вижу. А в английском «не» только одно: can't + anyone."},
+ {q:"He's coming after us.", sayQ:"He's coming after us.",
+  opts:[["Он гонится за нами.",1],
+        ["Он придёт после нас.",0,"Ловушка! after обычно значит «после», но come after someone — это «гнаться за кем-то»."],
+        ["Он идёт вместе с нами.",0,"«вместе с нами» — это with us."]],
+  why:"come after someone — бежать за кем-то, чтобы поймать. Рыцарь хочет поймать детей, поэтому они убегают."},
+ {q:"a good place to hide", sayQ:"a good place to hide",
+  opts:[["хорошее место, чтобы спрятаться",1],
+        ["хорошее время, чтобы спрятаться",0,"«время» — это time. А place — место."],
+        ["хорошее место, чтобы поиграть",0,"«играть» — это play. А hide — прятаться."]],
+  why:"place — место; to hide — чтобы спрятаться. Схема: place to + глагол — место, где можно что-то сделать."},
+ {q:"We mustn't make a noise.", sayQ:"We mustn't make a noise.",
+  opts:[["Нам нельзя шуметь.",1],
+        ["Нам нужно пошуметь.",0,"Так было бы We must make a noise, без n't. А n't — это not, «не»."],
+        ["Мы не любим шум.",0,"«не любим» — это don't like."]],
+  why:"mustn't = must not — нельзя. make a noise — шуметь. Говорят именно make a noise, а не do a noise."},
+ {q:"Hold the lead.", sayQ:"Hold the lead.",
+  opts:[["Держи поводок.",1],
+        ["Веди нас.",0,"Ловушка! lead бывает глаголом «вести». Но здесь перед ним стоит the, значит это предмет — поводок."],
+        ["Держи крышку.",0,"«крышка» — это lid. Звучит похоже, но слово другое."]],
+  why:"hold — держать; lead [liːd] — поводок для собаки. В американском английском поводок называют leash."},
+ {q:"I'm glad it worked.", sayQ:"I'm glad it worked.",
+  opts:[["Я рад(а), что это сработало.",1],
+        ["Я рад(а), что мы поработали.",0,"Ловушка! work — «работать», но когда речь про идею или план, work значит «сработать, получиться»."],
+        ["Мне грустно, что не получилось.",0,"«грустно» — это sad. А glad — рад."]],
+  why:"glad — рад(а); it worked — это сработало, получилось. worked — прошедшее время: план уже сработал."},
+ {q:"in the frame", sayQ:"in the frame",
+  opts:[["в рамке",1],
+        ["на стене",0,"«на стене» — это on the wall."],
+        ["в коробке",0,"«в коробке» — это in the box."]],
+  why:"frame — рамка; in — в, внутри. a picture in the frame — картина в рамке."},
+ {q:"Poor Horax!", sayQ:"Poor Horax!",
+  opts:[["Бедный Хоракс! (его жалко)",1],
+        ["Злой Хоракс!",0,"«злой» — это angry или bad."],
+        ["Смешной Хоракс!",0,"«смешной» — это funny."]],
+  why:"poor — бедный, бедняжка. Так говорят, когда кого-то жалко. У poor есть и второе значение — «небогатый», но здесь Хоракса жалеют: он упал."},
+ {q:"Terrible!", sayQ:"Terrible!",
+  opts:[["Ужасно!",1],
+        ["Терпимо.",0,"Ловушка! terrible похоже на «терпимо», но значит совсем другое — «ужасно»."],
+        ["Отлично!",0,"«отлично» — это great! Это противоположность terrible."]],
+  why:"terrible — ужасно, очень плохо. How do you feel? — Terrible! Как ты себя чувствуешь? — Ужасно!"}
+];
+
+/* ================= data: 3. story ================= */
+var STORY=[
+ {q:"The children are in a museum. They are looking for the first line of the ___.",
+  opts:[["rhyme",1],
+        ["frame",0,"frame — рамка. Строчки бывают у стишка, а не у рамки."],
+        ["lead",0,"lead — поводок. У поводка нет строчек!"]],
+  say:"The children are in a museum. They are looking for the first line of the rhyme.",
+  tr:"Дети в музее. Они ищут первую строчку стишка.",
+  why:"rhyme — стишок. Стишок-подсказка спрятан по частям, и дети ищут его строчки (line)."},
+ {q:"Ben: We're in the museum now. I hope we can find the line ___!",
+  opts:[["here",1],
+        ["hear",0,"hear — «слышать». Звучит так же, как here, но это действие, а здесь нужно место."],
+        ["hair",0,"hair — «волосы». Звучит похоже, но смысла нет."]],
+  say:"We're in the museum now. I hope we can find the line here!",
+  tr:"Мы уже в музее. Надеюсь, мы найдём строчку здесь!",
+  why:"here — здесь. Бен надеется найти строчку прямо здесь, в музее."},
+ {q:"Something flies very near Ben's head. Ben: Phew! That was ___!",
+  opts:[["close",1],
+        ["closed",0,"closed — «закрыто». Так говорят про дверь или магазин, а не про опасность."],
+        ["clothes",0,"clothes — «одежда». Звучит похоже, но значит совсем другое."]],
+  say:"Phew! That was close!",
+  tr:"Фух! Чуть не попало!",
+  why:"That was close! — «Чуть не попало!», «Еле пронесло!». close [kləʊs] — близко: опасность пролетела совсем рядом."},
+ {q:"Ben thinks someone is ___ to hurt them.",
+  opts:[["trying",1],
+        ["try",0,"После is нужна форма с -ing: is trying. Сказать is try нельзя."],
+        ["tries",0,"tries бывает без is: someone tries. Но здесь уже есть is, поэтому нужно -ing."]],
+  say:"Ben thinks someone is trying to hurt them.",
+  tr:"Бен думает, что кто-то пытается им навредить.",
+  why:"is trying to — «пытается» прямо сейчас. Это Present Continuous: is + глагол с -ing."},
+ {q:"Ben looks around the room. Ben: I can't see ___.",
+  opts:[["anyone",1],
+        ["no one",0,"В английском два «не» подряд нельзя. can't уже есть, поэтому no one не подходит."],
+        ["someone",0,"someone — «кто-то». В предложениях с «не» (can't) говорят anyone."]],
+  say:"I can't see anyone.",
+  tr:"Бен оглядывает зал. «Я никого не вижу».",
+  why:"can't see anyone — никого не вижу. В английском одно отрицание: can't + anyone."},
+ {q:"Lucy sees a knight with a sword. Lucy: Run! He's coming ___ us!",
+  opts:[["after",1],
+        ["with",0,"coming with us — «идёт вместе с нами». Но рыцарь не друг — от него убегают!"],
+        ["before",0,"before — «до, перед». Так с coming не говорят."]],
+  say:"Run! He's coming after us!",
+  tr:"Люси видит рыцаря с мечом. «Бежим! Он гонится за нами!»",
+  why:"come after someone — гнаться за кем-то. Рыцарь хочет поймать детей, поэтому after."},
+ {q:"The children run to the columns. Ben: Quick! Here's a good place to ___.",
+  opts:[["hide",1],
+        ["hiding",0,"После to нужна начальная форма глагола: to hide, а не to hiding."],
+        ["hides",0,"После to окончание -s не ставим."]],
+  say:"Quick! Here's a good place to hide.",
+  tr:"Дети бегут к колоннам. «Скорее! Вот хорошее место, чтобы спрятаться».",
+  why:"a place to hide — место, чтобы спрятаться. После to — глагол в начальной форме."},
+ {q:"Lucy hopes the knight ___ find them.",
+  opts:[["doesn't",1],
+        ["don't",0,"the knight — это «он» (he). С he нужно doesn't, а don't — с I, you, we, they."],
+        ["isn't",0,"isn't — от глагола be. С глаголом find нужен doesn't."]],
+  say:"Lucy hopes the knight doesn't find them.",
+  tr:"Люси надеется, что рыцарь их не найдёт.",
+  why:"После hope про будущее часто ставим обычное настоящее время (Present Simple). the knight = he, поэтому doesn't find."},
+ {q:"The knight is very near. The children ___ make a noise.",
+  opts:[["mustn't",1],
+        ["must",0,"must — «должны». Получится «Дети должны шуметь», а им нужно прятаться!"],
+        ["don't must",0,"Такой формы нет. Правильно: mustn't."]],
+  say:"The knight is very near. The children mustn't make a noise.",
+  tr:"Рыцарь совсем близко. Детям нельзя шуметь.",
+  why:"mustn't — нельзя. Если рыцарь услышит шум, он найдёт детей."},
+ {q:"Lucy has an idea. She says to Ben: Hold the ___!",
+  opts:[["lead",1],
+        ["lid",0,"lid — «крышка». Звучит похоже, но у Бастера нет крышки!"],
+        ["line",0,"line — «строчка, линия». А Бену нужно держать поводок."]],
+  say:"Hold the lead!",
+  tr:"У Люси есть идея. Она говорит Бену: «Держи поводок!»",
+  why:"lead [liːd] — поводок. Бастер бежит, поводок натягивается, и рыцарь спотыкается."},
+ {q:"The knight falls over the lead. Lucy is ___ the idea worked.",
+  opts:[["glad",1],
+        ["sad",0,"sad — «грустная». Но идея сработала — Люси радуется!"],
+        ["bad",0,"bad — «плохая». По смыслу совсем не подходит."]],
+  say:"The knight falls over the lead. Lucy is glad the idea worked.",
+  tr:"Рыцарь падает через поводок. Люси рада, что идея сработала.",
+  why:"glad — рад(а). Идея сработала: рыцарь упал, дети спаслись."},
+ {q:"On the shield they find the first line of the rhyme. It says the clue is behind the picture ___ the frame.",
+  opts:[["in",1],
+        ["on",0,"on — «на». Картина вставлена внутрь рамки, поэтому in."],
+        ["at",0,"at — так про картину в рамке не говорят. Нужно in."]],
+  say:"It says the clue is behind the picture in the frame.",
+  tr:"На щите они находят первую строчку стишка. В ней сказано, что подсказка — за картиной в рамке.",
+  why:"in the frame — в рамке. Картина находится внутри рамки, поэтому in."},
+ {q:"Zelda looks at Horax on the floor. Zelda: ___ Horax!",
+  opts:[["Poor",1],
+        ["Rich",0,"rich — «богатый». А Зельде жалко Хоракса."],
+        ["Happy",0,"happy — «счастливый». Но Хоракс упал, ему плохо."]],
+  say:"Poor Horax!",
+  tr:"Зельда смотрит на Хоракса на полу. «Бедный Хоракс!»",
+  why:"Poor + имя — «бедный…», «бедняжка». Так говорят, когда кого-то жалко."},
+ {q:"Zelda asks Horax how he feels. He feels ___.",
+  opts:[["terrible",1],
+        ["great",0,"great — «отлично». Но Хоракс упал, ему плохо."],
+        ["fine",0,"fine — «нормально, хорошо». Хораксу совсем не хорошо."]],
+  say:"Zelda asks Horax how he feels. He feels terrible.",
+  tr:"Зельда спрашивает Хоракса, как он себя чувствует. Он чувствует себя ужасно.",
+  why:"terrible — ужасно, очень плохо. Хоракс упал в тяжёлых доспехах."}
+];
+
+/* ================= data: 4. situations ================= */
+var SITUATIONS=[
+ {q:"Мяч пролетел совсем рядом с твоей головой. Фух!",
+  opts:[["That was close!",1],
+        ["That was closed!",0,"closed — «закрыто». Так говорят про дверь или магазин."],
+        ["I'm glad it worked!",0,"Это «Рад, что сработало!» — про идею или план, а не про мяч."]],
+  tr:"Чуть не попало!",
+  why:"That was close! говорят, когда опасность прошла совсем рядом."},
+ {q:"Вы играете в прятки. За шторой — отличное место! Ты шепчешь другу:",
+  opts:[["This is a good place to hide.",1],
+        ["This is a good place to hiding.",0,"После to — глагол в начальной форме: to hide."],
+        ["I can't see anyone.",0,"Это «Я никого не вижу». Так скажет тот, кто ищет, а не тот, кто прячется."]],
+  tr:"Это хорошее место, чтобы спрятаться.",
+  why:"a good place to hide — хорошее место, чтобы спрятаться."},
+ {q:"Малыш уснул. Скажи другу, что шуметь нельзя:",
+  opts:[["We mustn't make a noise.",1],
+        ["We must make a noise.",0,"must — «должны». Получится «Мы должны шуметь» — наоборот!"],
+        ["We mustn't do a noise.",0,"«Шуметь» — make a noise, а не do a noise."]],
+  tr:"Нам нельзя шуметь.",
+  why:"mustn't — нельзя; make a noise — шуметь."},
+ {q:"Ты смотришь в окно. На улице пусто — ни одного человека.",
+  opts:[["I can't see anyone.",1],
+        ["I can't see no one.",0,"Два «не» (can't + no one) в английском нельзя."],
+        ["I can see someone.",0,"Это «Я кого-то вижу». А на улице пусто."]],
+  tr:"Я никого не вижу.",
+  why:"can't + anyone — «никого не…». В английском одно отрицание."},
+ {q:"Твой план, как достать мяч с дерева, сработал! Ты говоришь:",
+  opts:[["I'm glad it worked!",1],
+        ["I'm glad it work!",0,"План уже сработал — это было раньше, поэтому нужно worked с -ed."],
+        ["I'm sad it worked!",0,"sad — «грустно». А ты радуешься!"]],
+  tr:"Я рад(а), что это сработало!",
+  why:"glad — рад; it worked — сработало. Окончание -ed — потому что это уже случилось."},
+ {q:"Ты гуляешь с собакой. Тебе нужно завязать шнурок, и ты просишь друга:",
+  opts:[["Hold the lead, please.",1],
+        ["Hold the lid, please.",0,"lid — «крышка». А тебе нужно, чтобы друг держал поводок."],
+        ["Hold the line, please.",0,"line — «строчка, линия». Собаку держат за поводок — lead."]],
+  tr:"Подержи поводок, пожалуйста.",
+  why:"lead [liːd] — поводок; hold — держать."},
+ {q:"Котёнок промок под дождём. Тебе его очень жалко.",
+  opts:[["Poor kitten!",1],
+        ["Terrible kitten!",0,"terrible kitten — «ужасный котёнок», как будто он плохой. А тебе его жалко."],
+        ["Rich kitten!",0,"rich — «богатый». Совсем не то."]],
+  tr:"Бедный котёнок!",
+  why:"poor — бедный, бедняжка. Так говорят, когда кого-то жалко."},
+ {q:"Тебя спрашивают: «How do you feel?» А у тебя болит живот.",
+  opts:[["Terrible.",1],
+        ["Great!",0,"great — «отлично». Но тебе плохо."],
+        ["I'm glad.",0,"glad — «рад». Когда болит живот, радоваться нечему."]],
+  tr:"Ужасно.",
+  why:"terrible — ужасно, очень плохо. Так отвечают, когда самочувствие плохое."},
+ {q:"Завтра у тебя футбол. Ты надеешься, что будет солнечно.",
+  opts:[["I hope it's sunny tomorrow.",1],
+        ["I hope it sunny tomorrow.",0,"Пропущен глагол: it's = it is. Без него фраза неправильная."],
+        ["I help it's sunny tomorrow.",0,"help — «помогать». А «надеяться» — hope. Не путай!"]],
+  tr:"Надеюсь, завтра будет солнечно.",
+  why:"I hope + обычное настоящее время — так часто говорят о будущем: I hope it's sunny tomorrow."},
+ {q:"Вы играете в салки. Водящий бежит за вами! Ты кричишь друзьям:",
+  opts:[["He's coming after us! Run!",1],
+        ["He's coming with us! Run!",0,"with us — «вместе с нами». Тогда убегать не нужно."],
+        ["He's hiding from us! Run!",0,"hiding from us — «прячется от нас». А водящий нас догоняет."]],
+  tr:"Он гонится за нами! Бежим!",
+  why:"come after someone — гнаться за кем-то."},
+ {q:"В компьютерной игре злой робот стреляет в вашу команду. Ты говоришь другу:",
+  opts:[["Someone is trying to hurt us!",1],
+        ["Someone is trying to help us!",0,"help — «помочь». Злой робот не помогает!"],
+        ["Someone is try to hurt us!",0,"После is нужна форма с -ing: is trying."]],
+  tr:"Кто-то пытается нам навредить!",
+  why:"is trying to — пытается; hurt — навредить, сделать больно."},
+ {q:"Учитель просит прочитать стихотворение. Ты показываешь, с какой строчки начинаешь:",
+  opts:[["This is the first line.",1],
+        ["This is the first lead.",0,"lead — «поводок»."],
+        ["This is the first frame.",0,"frame — «рамка»."]],
+  tr:"Это первая строчка.",
+  why:"line — строчка. the first line — первая строчка."}
+];
+
+/* ================= data: 5. build ================= */
+var BUILD=[
+ {w:["We","mustn't","make","a","noise."], tr:"Нам нельзя шуметь.",
+  why:"Сначала кто (We), потом «нельзя» (mustn't), потом действие (make a noise)."},
+ {w:["This","is","a","good","place","to","hide."], tr:"Это хорошее место, чтобы спрятаться.",
+  why:"Сначала место (a good place), потом — что там можно делать (to hide)."},
+ {w:["Someone","is","trying","to","hurt","us."], tr:"Кто-то пытается нам навредить.",
+  why:"is trying to + глагол — пытается что-то сделать. «Нам» (us) в английском стоит после глагола, в самом конце."},
+ {w:["I","hope","the","knight","doesn't","find","us."], tr:"Надеюсь, рыцарь нас не найдёт.",
+  why:"После I hope идёт целое предложение: кто (the knight) + не найдёт (doesn't find) + кого (us)."},
+ {w:["He's","coming","after","us."], tr:"Он гонится за нами.",
+  why:"coming after — «гонится за». after стоит сразу после coming, а за ним — кого (us)."},
+ {w:["I","can't","see","anyone."], tr:"Я никого не вижу.",
+  why:"Одно «не» — can't. anyone стоит в конце, после глагола see."},
+ {w:["I'm","glad","it","worked."], tr:"Я рад(а), что это сработало.",
+  why:"После I'm glad сразу говорим, чему радуемся: it worked."}
+];
+
+/* ================= tabs ================= */
+var tabs=document.querySelectorAll(".tab");
+function openTab(id){
+  for(var i=0;i<tabs.length;i++){
+    var on=tabs[i].getAttribute("data-p")===id;
+    tabs[i].setAttribute("aria-selected",on?"true":"false");
+    document.getElementById(tabs[i].getAttribute("data-p")).classList.toggle("on",on);
+  }
+  try{ window.scrollTo({top:0,behavior:reduceMotion?"auto":"smooth"}); }catch(e){ window.scrollTo(0,0); }
+}
+for(var t=0;t<tabs.length;t++){
+  tabs[t].addEventListener("click",function(){ openTab(this.getAttribute("data-p")); });
+}
+
+/* ================= 1. cards ================= */
+(function(){
+  var grid=document.getElementById("cardGrid");
+  CARDS.forEach(function(c){
+    var card=el("div","card");
+    card.tabIndex=0;
+    card.setAttribute("role","button");
+    card.setAttribute("aria-label",c.en+". Нажми, чтобы увидеть перевод");
+    var inner=el("div","inner");
+
+    var front=el("div","face front");
+    var ph=el("p","phrase",c.en); ph.setAttribute("lang","en");
+    front.appendChild(ph);
+    front.appendChild(sayBtn(c.en));
+    front.appendChild(el("p","hint","нажми на карточку"));
+
+    var back=el("div","face back");
+    back.appendChild(el("p","ru",c.ru));
+    back.appendChild(el("p","note",c.note));
+    var exrow=el("div","exrow");
+    var ex=el("p","ex",c.ex); ex.setAttribute("lang","en");
+    exrow.appendChild(ex);
+    exrow.appendChild(sayBtn(c.ex,"Послушать пример"));
+    back.appendChild(exrow);
+
+    inner.appendChild(front); inner.appendChild(back); card.appendChild(inner);
+    function flip(){
+      card.classList.toggle("flipped");
+      if(card.classList.contains("flipped")) say(c.en);
+    }
+    card.addEventListener("click",flip);
+    card.addEventListener("keydown",function(ev){
+      if(ev.target!==card)return;
+      if(ev.key==="Enter"||ev.key===" "){ ev.preventDefault(); flip(); }
+    });
+    grid.appendChild(card);
+  });
+})();
+
+/* ================= multiple choice engine ================= */
+function makeChoice(cfg){
+  var root=document.getElementById(cfg.id);
+  var bar=root.querySelector(".bar i"), meta=root.querySelector(".meta"), box=root.querySelector(".qbox");
+  var list=[], i=0, score=0;
+
+  function progress(answered){
+    var n=i+(answered?1:0);
+    bar.style.width=Math.round(n/list.length*100)+"%";
+    meta.textContent="Вопрос "+(i+1)+" из "+list.length+". Верно: "+score;
+  }
+  function start(){ list=cfg.shuffle?shuffle(cfg.items):cfg.items.slice(); i=0; score=0; show(); }
+
+  function show(){
+    if(i>=list.length){ finish(); return; }
+    progress(false);
+    var it=list[i], answered=false;
+    var correct=null;
+    it.opts.forEach(function(o){ if(o[1]===1)correct=o; });
+    box.innerHTML="";
+
+    if(cfg.leadText) box.appendChild(el("p","qlead",cfg.leadText));
+    var q=el("p","qtext"+(cfg.qEn?" en":"")+(cfg.bigQ?" big":""));
+    if(cfg.qEn) q.setAttribute("lang","en");
+    q.innerHTML=esc(it.q).replace("___",'<span class="gap">?</span>');
+    if(it.sayQ){ q.appendChild(sayBtn(it.sayQ)); }
+    box.appendChild(q);
+    if(cfg.ask) box.appendChild(el("p","ask",cfg.ask));
+
+    var grid=el("div","opts"), buttons=[];
+    shuffle(it.opts).forEach(function(o){
+      var b=el("button","opt"+(cfg.optEn?" en":""),o[0]);
+      b.type="button";
+      if(cfg.optEn) b.setAttribute("lang","en");
+      b._o=o;
+      b.addEventListener("click",function(){
+        if(answered)return;
+        answered=true;
+        var ok=o[1]===1;
+        if(ok)score++;
+        buttons.forEach(function(x){
+          x.disabled=true;
+          if(x._o[1]===1)x.classList.add("right");
+          else if(x===b)x.classList.add("wrong");
+          else x.classList.add("dim");
+        });
+        var gap=q.querySelector(".gap");
+        if(gap){ gap.textContent=correct[0]; gap.classList.add(ok?"g-ok":"g-no"); }
+        progress(true);
+        var speak=it.say||(cfg.optEn?correct[0]:it.sayQ);
+        if(speak) say(speak);
+        var fb=feedback(it,ok,correct,o,speak);
+        box.appendChild(fb);
+        reveal(fb);
+      });
+      buttons.push(b);
+      grid.appendChild(b);
+    });
+    box.appendChild(grid);
+  }
+
+  function feedback(it,ok,correct,chosen,speak){
+    var f=el("div","fb"+(ok?"":" no"));
+    var h=el("p","fb-head",ok?"Верно! ":"Не совсем. Правильный ответ: ");
+    if(!ok){
+      var a=el("span",cfg.optEn?"en":"",correct[0]);
+      if(cfg.optEn)a.setAttribute("lang","en");
+      h.appendChild(a);
+    }
+    f.appendChild(h);
+
+    if(it.tr){
+      var p=el("p");
+      p.innerHTML="<b>Перевод:</b> "+esc(it.tr);
+      f.appendChild(p);
+    }
+    var w=el("p");
+    w.innerHTML="<b>Почему так:</b> "+esc(it.why);
+    f.appendChild(w);
+
+    f.appendChild(el("p","fb-sub","А другие варианты?"));
+    var others=it.opts.filter(function(o){return o[1]!==1;});
+    others.sort(function(x,y){ return (x===chosen?-1:0)-(y===chosen?-1:0); });
+    others.forEach(function(o){
+      var p=el("p","fb-other"+(o===chosen?" picked":""));
+      var opt=o[0], note=o[2];
+      var bare=note.replace(/^«/,"");
+      var starts=bare.toLowerCase().indexOf(opt.toLowerCase())===0;
+      var s=el("span","fb-opt"+(cfg.optEn?" en":""),"«"+opt+"»");
+      if(cfg.optEn)s.setAttribute("lang","en");
+      p.appendChild(s);
+      var tag=el("span","tag"," (твой выбор)");
+      if(starts){
+        p.appendChild(document.createTextNode(bare.slice(opt.length).replace(/^»/,"")));
+        if(o===chosen)p.appendChild(tag);
+      }else{
+        if(o===chosen)p.appendChild(tag);
+        p.appendChild(el("br"));
+        p.appendChild(document.createTextNode(note));
+      }
+      f.appendChild(p);
+    });
+
+    var row=el("div","row");
+    if(speak){
+      var l=el("button","go quiet","🔊 Ещё раз");
+      l.type="button";
+      l.addEventListener("click",function(){ say(speak); });
+      row.appendChild(l);
+    }
+    var n=el("button","go",i+1<list.length?"Дальше":"Мой результат");
+    n.type="button";
+    n.addEventListener("click",function(){ i++; show(); reveal(root); });
+    row.appendChild(n);
+    f.appendChild(row);
+    setTimeout(function(){ try{ n.focus({preventScroll:true}); }catch(e){} },50);
+    return f;
+  }
+
+  function finish(){ showResult(root,bar,meta,box,score,list.length,start,cfg.next); }
+  start();
+}
+
+function showResult(root,bar,meta,box,score,total,again,next){
+  bar.style.width="100%";
+  meta.textContent="Готово!";
+  box.innerHTML="";
+  var r=el("div","result");
+  r.appendChild(el("p","","Верно"));
+  r.appendChild(el("p","big",score+" из "+total));
+  var msg= score===total ? "Отлично! Всё правильно." :
+           score>=Math.ceil(total*0.75) ? "Хороший результат! Пройди ещё раз — и будет без ошибок." :
+           "Повтори карточки и пройди задание ещё раз.";
+  r.appendChild(el("p","",msg));
+  var row=el("div","row");
+  var a=el("button","go quiet","Пройти ещё раз"); a.type="button";
+  a.addEventListener("click",function(){ again(); reveal(root); });
+  row.appendChild(a);
+  if(next){
+    var b=el("button","go","Следующее задание"); b.type="button";
+    b.addEventListener("click",function(){ openTab(next); });
+    row.appendChild(b);
+  }
+  r.appendChild(row);
+  box.appendChild(r);
+}
+
+/* ================= 2–4 ================= */
+makeChoice({id:"q2", items:MEANING, shuffle:true, qEn:true, bigQ:true, optEn:false,
+            ask:"Что это значит?", next:"p3"});
+makeChoice({id:"q3", items:STORY, shuffle:false, qEn:true, optEn:true, next:"p4"});
+makeChoice({id:"q4", items:SITUATIONS, shuffle:true, qEn:false, optEn:true,
+            ask:"Что ты скажешь по-английски?", next:"p5"});
+
+/* ================= 5. build ================= */
+(function(){
+  var root=document.getElementById("q5");
+  var bar=root.querySelector(".bar i"), meta=root.querySelector(".meta"), box=root.querySelector(".qbox");
+  var list=[], i=0, score=0;
+
+  function progress(answered){
+    bar.style.width=Math.round((i+(answered?1:0))/list.length*100)+"%";
+    meta.textContent="Фраза "+(i+1)+" из "+list.length+". Верно: "+score;
+  }
+  function start(){ list=shuffle(BUILD); i=0; score=0; show(); }
+
+  function show(){
+    if(i>=list.length){ showResult(root,bar,meta,box,score,list.length,start,null); return; }
+    progress(false);
+    var it=list[i], target=it.w.join(" "), placed=[], checked=false;
+    box.innerHTML="";
+    box.appendChild(el("p","qlead","Собери по-английски:"));
+    box.appendChild(el("p","qtext","«"+it.tr+"»"));
+
+    var line=el("div","line"); line.setAttribute("lang","en");
+    var pool=el("div","pool"); pool.setAttribute("lang","en");
+    var order=shuffle(it.w);
+    var guard=0;
+    while(order.join(" ")===target && guard<10){ order=shuffle(it.w); guard++; }
+
+    var poolBtns=order.map(function(word){
+      var b=el("button","tok",word); b.type="button";
+      b.addEventListener("click",function(){
+        if(checked||b.classList.contains("used"))return;
+        b.classList.add("used");
+        var chip=el("button","tok",word); chip.type="button";
+        chip._src=b;
+        chip.addEventListener("click",function(){
+          if(checked)return;
+          b.classList.remove("used");
+          placed.splice(placed.indexOf(chip),1);
+          line.removeChild(chip);
+          check.disabled=placed.length!==order.length;
+        });
+        placed.push(chip);
+        line.appendChild(chip);
+        check.disabled=placed.length!==order.length;
+      });
+      pool.appendChild(b);
+      return b;
+    });
+
+    box.appendChild(line);
+    box.appendChild(pool);
+
+    var row=el("div","row");
+    var reset=el("button","go quiet","Начать заново"); reset.type="button";
+    reset.addEventListener("click",function(){
+      if(checked)return;
+      placed.forEach(function(c){ line.removeChild(c); });
+      placed=[];
+      poolBtns.forEach(function(b){ b.classList.remove("used"); });
+      check.disabled=true;
+    });
+    var check=el("button","go","Проверить"); check.type="button"; check.disabled=true;
+    check.addEventListener("click",function(){
+      if(checked||placed.length!==order.length)return;
+      checked=true;
+      var built=placed.map(function(c){return c.textContent;}).join(" ");
+      var ok=built===target;
+      if(ok)score++;
+      line.classList.add(ok?"ok":"no");
+      placed.forEach(function(c){ c.disabled=true; });
+      poolBtns.forEach(function(b){ b.disabled=true; });
+      reset.disabled=true; check.disabled=true;
+      progress(true);
+      say(target);
+
+      var f=el("div","fb"+(ok?"":" no"));
+      var h=el("p","fb-head",ok?"Верно! ":"Почти! Правильно так: ");
+      if(!ok){ var s=el("span","en",target); s.setAttribute("lang","en"); h.appendChild(s); }
+      f.appendChild(h);
+      var p1=el("p"); p1.innerHTML="<b>Перевод:</b> "+esc(it.tr); f.appendChild(p1);
+      var p2=el("p"); p2.innerHTML="<b>Как строится фраза:</b> "+esc(it.why); f.appendChild(p2);
+      var r2=el("div","row");
+      var l=el("button","go quiet","🔊 Ещё раз"); l.type="button";
+      l.addEventListener("click",function(){ say(target); });
+      var n=el("button","go",i+1<list.length?"Дальше":"Мой результат"); n.type="button";
+      n.addEventListener("click",function(){ i++; show(); reveal(root); });
+      r2.appendChild(l); r2.appendChild(n);
+      f.appendChild(r2);
+      box.appendChild(f);
+      reveal(f);
+      setTimeout(function(){ try{ n.focus({preventScroll:true}); }catch(e){} },50);
+    });
+    row.appendChild(reset); row.appendChild(check);
+    box.appendChild(row);
+  }
+  start();
+})();
+
+})();
+</script>
+</body>
+</html>
