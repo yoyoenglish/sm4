@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en" translate="no">
+<head>
+<meta charset="utf-8">
+<meta name="google" content="notranslate">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>The World Around Us — Word Trainer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --sky:#E3F1FA; --meadow:#4E9A3E; --meadow-d:#2F6B24; --lake:#2C7DC0; --sun:#F5C342; --soil:#6B4A2B;
+  --ink:#1F2A1C; --paper:#FFFFFF; --muted:#5C6B58; --wrong:#D9493A; --ok:#3FA34D; --ru:#EEF6E9;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){--sky:#14212B;--paper:#1D2B22;--ink:#EAF2E6;--muted:#A9B8A4;--meadow-d:#8FD07B;--ru:#26382C}
+}
+:root[data-theme="dark"]{--sky:#14212B;--paper:#1D2B22;--ink:#EAF2E6;--muted:#A9B8A4;--meadow-d:#8FD07B;--ru:#26382C}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--sky);color:var(--ink);-webkit-text-size-adjust:100%;
+  font-family:"Baloo 2",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;font-size:18px;line-height:1.4}
+header{position:relative;overflow:hidden}
+header svg.hills{display:block;width:100%;height:150px}
+header h1{position:absolute;left:0;right:0;top:12px;margin:0;text-align:center;font-size:clamp(28px,6.5vw,46px);font-weight:800;color:#fff;text-shadow:0 3px 0 var(--meadow-d)}
+header p{position:absolute;left:0;right:0;top:80px;margin:0;text-align:center;color:#fff;font-weight:600;font-size:16px;text-shadow:0 1px 0 var(--meadow-d)}
+.wrap{max-width:1040px;margin:0 auto;padding:14px 16px 56px}
+nav{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin:4px 0 22px}
+.tab{font:inherit;font-weight:700;font-size:16px;border:2px solid var(--meadow);background:var(--paper);color:var(--meadow-d);
+  border-radius:999px;padding:5px 16px;cursor:pointer}
+.tab[aria-selected="true"]{background:var(--meadow);color:#fff}
+button:focus-visible,[tabindex]:focus-visible{outline:3px solid var(--sun);outline-offset:3px}
+.panel{display:none}.panel.on{display:block}
+.lead{max-width:60ch;margin:0 auto 18px;text-align:center;color:var(--muted);font-size:17px}
+
+/* cards */
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px;align-items:start}
+.card{background:var(--paper);border-radius:18px;box-shadow:0 4px 0 rgba(47,107,36,.3);cursor:pointer;overflow:hidden;min-height:290px;display:flex;flex-direction:column}
+.card .front{display:flex;flex-direction:column}
+.card .front svg{display:block;width:100%;height:auto}
+.card .wordline{display:flex;align-items:center;justify-content:space-between;padding:8px 12px 2px}
+.card .w{font-size:26px;font-weight:800}
+.card .hint{font-size:14px;color:var(--muted);padding:0 12px 12px}
+.card .back{display:none;padding:14px;flex-direction:column;gap:8px;flex:1}
+.card.flipped .front{display:none}.card.flipped .back{display:flex}
+.def{margin:0;font-size:18px;line-height:1.4}
+.trans{margin:0;font-size:16px;line-height:1.4;background:var(--ru);border-radius:10px;padding:8px 10px;color:var(--ink)}
+.trans[hidden]{display:none}
+.ex{margin:0;font-size:16px;font-style:italic;color:var(--muted)}
+.tools{display:flex;gap:8px;margin-top:auto}
+.say,.rub{font:inherit;font-weight:700;border:none;border-radius:12px;cursor:pointer;box-shadow:0 3px 0 rgba(0,0,0,.18)}
+.say{background:var(--sun);color:#3a2a00;width:44px;height:40px;font-size:18px}
+.rub{background:var(--meadow);color:#fff;padding:0 14px;height:40px;font-size:15px}
+.chipw{display:inline-block;background:var(--sun);color:#3a2a00;font-weight:800;font-size:20px;padding:2px 14px;border-radius:999px;align-self:flex-start}
+
+/* match */
+.match{display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:start;max-width:820px;margin:0 auto}
+.col{display:flex;flex-direction:column;gap:10px}
+.col h2{font-size:16px;margin:0;color:var(--muted);font-weight:600}
+.opt{font:inherit;text-align:left;cursor:pointer;border:3px solid transparent;border-radius:14px;background:var(--paper);color:var(--ink);
+  padding:8px 12px;font-size:17px;line-height:1.35;display:flex;align-items:center;gap:10px;box-shadow:0 3px 0 rgba(47,107,36,.25)}
+.opt svg{width:96px;height:auto;flex:none;border-radius:8px}
+.opt.pick{border-color:var(--sun)}
+.opt.done{background:var(--ok);color:#fff;cursor:default;opacity:.8}
+.opt.bad{border-color:var(--wrong);animation:shake .3s}
+.opt.word-opt{font-weight:800;justify-content:center;text-align:center;font-size:20px;min-height:52px}
+
+/* story */
+.story{background:var(--paper);border-radius:18px;padding:22px;font-size:19px;line-height:2.15;max-width:70ch;margin:0 auto;box-shadow:0 4px 0 rgba(47,107,36,.3)}
+.blank{display:inline-block;min-width:110px;border:0;border-bottom:3px dashed var(--meadow);background:var(--ru);color:var(--ink);
+  font:inherit;font-size:18px;font-weight:700;padding:0 8px;border-radius:6px 6px 0 0;cursor:pointer;line-height:1.6}
+.blank.sel{background:var(--sun);color:#3a2a00}
+.blank.ok{background:var(--ok);color:#fff;border-bottom-color:var(--ok)}
+.blank.no{background:#FBD3D1;color:#1F2A1C;border-bottom-color:var(--wrong)}
+.chips{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin:18px auto 0;max-width:70ch}
+.chip{font:inherit;font-size:18px;font-weight:700;cursor:pointer;background:var(--sun);color:#3a2a00;border:0;padding:4px 16px;border-radius:999px;box-shadow:0 3px 0 rgba(0,0,0,.2)}
+.chip.used{opacity:.3;cursor:default}
+
+/* quiz */
+.quiz{max-width:620px;margin:0 auto;text-align:center}
+.qbox{background:var(--paper);border-radius:18px;padding:20px;box-shadow:0 4px 0 rgba(47,107,36,.3)}
+.qbox .qpic svg{width:100%;max-width:300px;height:auto;border-radius:12px}
+.qtext{font-size:20px;line-height:1.45;margin:6px 0 14px}
+.qgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+.tiles{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-top:12px}
+.tile{font:inherit;font-size:24px;font-weight:800;cursor:pointer;width:46px;height:52px;border:0;border-radius:10px;background:var(--sun);color:#3a2a00;box-shadow:0 3px 0 rgba(0,0,0,.2)}
+.tile.used{visibility:hidden}
+.slotline{font-size:30px;font-weight:800;letter-spacing:.12em;min-height:44px}
+.trail{display:block;width:100%;height:40px;margin-bottom:8px}
+.score{font-size:16px;color:var(--muted);margin:10px 0 0}
+.result{font-size:44px;font-weight:800;color:var(--meadow-d);margin:0}
+
+.go{font:inherit;font-size:17px;font-weight:700;cursor:pointer;background:var(--meadow);color:#fff;border:0;padding:8px 22px;border-radius:999px;
+  box-shadow:0 4px 0 var(--meadow-d);margin:18px auto 0;display:block}
+.go.quiet{background:var(--paper);color:var(--meadow-d);box-shadow:0 3px 0 rgba(47,107,36,.35)}
+.note{text-align:center;margin:14px 0 0;font-size:18px;font-weight:700;min-height:26px}
+.note.good{color:var(--ok)}.note.bad{color:var(--wrong)}
+@keyframes shake{25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+@media (max-width:640px){.match{grid-template-columns:1fr}.opt svg{width:84px}.story{font-size:17px;padding:16px}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body class="notranslate">
+<header>
+  <svg class="hills" viewBox="0 0 400 130" preserveAspectRatio="none" aria-hidden="true">
+    <rect width="400" height="130" fill="#7EC4EA"/>
+    <path d="M0 88 Q60 46 130 80 T260 66 T400 78 V130 H0Z" fill="#6BAF55"/>
+    <path d="M0 110 Q90 80 190 104 T400 100 V130 H0Z" fill="#4E9A3E"/>
+    <path d="M30 130 Q120 108 200 114 T380 106" fill="none" stroke="#F1D9A6" stroke-width="4" stroke-dasharray="8 7"/>
+  </svg>
+  <h1>The World Around Us</h1>
+  <p>Eight words to learn and remember. Super Minds 4</p>
+</header>
+<div class="wrap">
+<nav role="tablist" aria-label="Activities">
+  <button class="tab" role="tab" data-p="p1" aria-selected="true">Word cards</button>
+  <button class="tab" role="tab" data-p="p2" aria-selected="false">Look and match</button>
+  <button class="tab" role="tab" data-p="p3" aria-selected="false">What does it mean?</button>
+  <button class="tab" role="tab" data-p="p4" aria-selected="false">Holiday story</button>
+  <button class="tab" role="tab" data-p="p5" aria-selected="false">Trail quiz</button>
+</nav>
+
+<section class="panel on" id="p1">
+  <p class="lead">Look at the picture and say the word. Tap the card to read what it means. Tap RU to see it in Russian.</p>
+  <div class="cards" id="cardGrid"></div>
+</section>
+
+<section class="panel" id="p2">
+  <p class="lead">Tap a picture, then tap its word. Eight pairs to find.</p>
+  <div class="match"><div class="col" id="picCol"><h2>Pictures</h2></div><div class="col" id="picWords"><h2>Words</h2></div></div>
+  <p class="note" id="note2"></p>
+  <button class="go quiet" id="reset2">Play again</button>
+</section>
+
+<section class="panel" id="p3">
+  <p class="lead">Tap a meaning, then tap the word that goes with it.</p>
+  <div class="match"><div class="col" id="defCol"><h2>Meanings</h2></div><div class="col" id="defWords"><h2>Words</h2></div></div>
+  <p class="note" id="note3"></p>
+  <button class="go quiet" id="reset3">Play again</button>
+</section>
+
+<section class="panel" id="p4">
+  <p class="lead">Tap a gap, then tap the word for it. Change your mind? Tap the gap again.</p>
+  <div class="story" id="story"></div>
+  <div class="chips" id="storyChips"></div>
+  <button class="go" id="checkStory">Check my story</button>
+  <p class="note" id="note4"></p>
+</section>
+
+<section class="panel" id="p5">
+  <p class="lead">Ten questions. Walk one step along the trail for every right answer.</p>
+  <div class="quiz"><div id="trail"></div><div class="qbox" id="qbox"></div><p class="score" id="score"></p></div>
+</section>
+</div>
+<script>
+(function(){
+"use strict";
+/* ---------- own illustrations ---------- */
+var SKY='<rect width="160" height="110" fill="#CFE8F7"/>';
+function fir(x,b,s,c){c=c||"#2F7A3A";return `<rect x="${x-3*s}" y="${b-14*s}" width="${6*s}" height="${14*s}" fill="#6B4A2B"/>
+<polygon points="${x},${b-42*s} ${x-20*s},${b-14*s} ${x+20*s},${b-14*s}" fill="${c}"/>
+<polygon points="${x},${b-58*s} ${x-15*s},${b-30*s} ${x+15*s},${b-30*s}" fill="${c}"/>`}
+function house(x,b,w,h,wall,roof){return `<rect x="${x}" y="${b-h}" width="${w}" height="${h}" fill="${wall}"/>
+<polygon points="${x-4},${b-h} ${x+w/2},${b-h-h*.75} ${x+w+4},${b-h}" fill="${roof}"/>
+<rect x="${x+w*.15}" y="${b-h*.75}" width="${w*.28}" height="${h*.28}" fill="#7EC4EA"/>
+<rect x="${x+w*.58}" y="${b-h*.55}" width="${w*.26}" height="${h*.55}" fill="#6B4A2B"/>`}
+var ART={
+mountain:SKY+`<polygon points="10,100 60,25 110,100" fill="#7B8794"/><polygon points="60,25 47,45 54,41 60,47 66,41 73,45" fill="#fff"/>
+<polygon points="70,100 110,40 150,100" fill="#5E6B78"/><polygon points="110,40 100,55 106,51 111,56 116,51 120,55" fill="#fff"/>
+<rect y="96" width="160" height="14" fill="#6BAA4F"/>`,
+forest:SKY+`<rect y="78" width="160" height="32" fill="#6BAA4F"/>`+fir(18,86,1)+fir(48,90,1.3,"#26652F")+fir(80,84,1.1)+fir(110,92,1.4,"#26652F")+fir(142,86,1)+fir(64,104,.8,"#3C8C45")+fir(126,106,.8,"#3C8C45"),
+village:SKY+`<rect y="80" width="160" height="30" fill="#6BAA4F"/>`
+ +house(10,86,30,24,"#F4E3C1","#C2513A")+house(56,80,26,20,"#FFFFFF","#3D6FB0")+house(98,88,34,26,"#F7D57A","#9C4A2E")+fir(146,84,.6),
+field:SKY+`<circle cx="130" cy="20" r="11" fill="#F5C342"/><path d="M0 46 Q50 34 100 44 T160 40 V50 H0Z" fill="#6BAA4F"/>
+<rect y="46" width="160" height="6" fill="#E8C547"/><rect y="52" width="160" height="8" fill="#C9A22B"/><rect y="60" width="160" height="10" fill="#E8C547"/>
+<rect y="70" width="160" height="12" fill="#C9A22B"/><rect y="82" width="160" height="14" fill="#E8C547"/><rect y="96" width="160" height="14" fill="#C9A22B"/>`,
+lake:SKY+`<rect y="36" width="160" height="74" fill="#7DBB5A"/>`+fir(14,40,.5)+fir(26,38,.6)+fir(132,40,.55)+fir(146,38,.6)+
+`<ellipse cx="80" cy="70" rx="64" ry="28" fill="#2C7DC0"/><ellipse cx="70" cy="64" rx="34" ry="10" fill="#5BA3DB"/>
+<path d="M28 88 v-12 M32 90 v-15 M36 88 v-10 M124 90 v-14 M128 88 v-11" stroke="#2F6B24" stroke-width="2"/>`,
+island:SKY+`<rect y="56" width="160" height="54" fill="#2C7DC0"/>
+<path d="M10 70 q6 -4 12 0 M120 96 q6 -4 12 0 M30 98 q6 -4 12 0 M130 66 q6 -4 12 0" stroke="#9FD0F2" stroke-width="2" fill="none"/>
+<ellipse cx="80" cy="80" rx="42" ry="12" fill="#F1D28A"/>
+<path d="M78 78 Q80 58 90 40" stroke="#7A5530" stroke-width="5" fill="none" stroke-linecap="round"/>
+<path d="M90 40 q-18 -6 -28 6 q14 -2 28 -6 q-6 -16 -22 -16 q12 8 22 16 q8 -16 24 -12 q-14 2 -24 12 q20 -2 26 12 q-14 -8 -26 -12" fill="#3C8C45"/>`,
+river:SKY+`<rect y="30" width="160" height="80" fill="#6BAA4F"/>`+fir(20,34,.45)+fir(140,34,.45)+
+`<path d="M74 30 C 60 50, 102 60, 72 80 S 38 102, 46 110 L 104 110 C 96 98, 120 84, 100 72 S 80 46, 84 30 Z" fill="#2C7DC0"/>
+<path d="M78 50 q6 4 4 10 M70 92 q-6 6 -2 12" stroke="#9FD0F2" stroke-width="2" fill="none"/>`,
+path:SKY+`<path d="M0 34 Q40 24 80 32 T160 30 V110 H0Z" fill="#6BAA4F"/>
+<path d="M56 110 C 66 90, 108 80, 90 60 S 74 42, 80 34 L 85 34 C 80 44, 104 56, 100 64 S 92 92, 116 110 Z" fill="#E3C68F"/>
+<circle cx="30" cy="70" r="10" fill="#3C8C45"/><circle cx="40" cy="74" r="8" fill="#2F7A3A"/><circle cx="132" cy="62" r="9" fill="#3C8C45"/>
+<circle cx="90" cy="96" r="2.5" fill="#B08A55"/><circle cx="76" cy="88" r="2" fill="#B08A55"/><circle cx="94" cy="72" r="1.8" fill="#B08A55"/>`
+};
+var svg=w=>`<svg viewBox="0 0 160 110" role="img" aria-label="picture"><g>${ART[w]}</g></svg>`;
+
+/* ---------- words ---------- */
+var WORDS=[
+ {w:"mountain",d:"A very, very high hill. It is often cold at the top, and sometimes there is snow.",
+  r:"Очень-очень высокий холм. На вершине часто холодно, а иногда лежит снег.",e:"We climbed the mountain and saw snow at the top."},
+ {w:"forest",d:"A big place with lots and lots of trees. Animals like foxes and bears live there.",
+  r:"Большое место, где растёт очень много деревьев. Там живут животные, например лисы и медведи.",e:"There are lots of tall trees in the forest."},
+ {w:"village",d:"A very small town in the country. Not many people live there.",
+  r:"Очень маленький населённый пункт за городом. Там живёт немного людей.",e:"My grandma lives in a small village."},
+ {w:"field",d:"A big piece of land with grass or plants on it. Farmers grow food there, and cows eat the grass.",
+  r:"Большой участок земли, на котором растёт трава или другие растения. Фермеры выращивают там еду, а коровы едят траву.",e:"The cows are in the field."},
+ {w:"lake",d:"A lot of water with land all around it. You can swim in it or go on it in a boat.",
+  r:"Много воды, а вокруг неё со всех сторон земля. В нём можно плавать или кататься на лодке.",e:"We swam in the lake in the summer."},
+ {w:"island",d:"Land with water all around it. You often need a boat to get there.",
+  r:"Земля, вокруг которой со всех сторон вода. Чтобы туда попасть, часто нужна лодка.",e:"There is a small island in the middle of the lake."},
+ {w:"river",d:"A long line of water. It goes across the land to the sea.",
+  r:"Длинная полоса воды. Она течёт по земле к морю.",e:"We went fishing in the river."},
+ {w:"path",d:"A small, narrow way for people to walk on. You find paths in forests, fields and parks.",
+  r:"Маленькая узкая дорожка, по которой ходят люди. Тропинки бывают в лесах, полях и парках.",e:"Follow the path through the forest."}
+];
+function find(w){for(var i=0;i<WORDS.length;i++)if(WORDS[i].w===w)return WORDS[i];return null;}
+function shuffle(a){var b=a.slice();for(var i=b.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=b[i];b[i]=b[j];b[j]=t;}return b;}
+
+/* ---------- audio ---------- */
+var voice=null;
+function pickVoice(){try{var v=speechSynthesis.getVoices();
+  voice=v.find(function(x){return x.lang==="en-GB"&&/Daniel|Serena|Kate|Google UK/i.test(x.name);})||v.find(function(x){return x.lang==="en-GB";})||v.find(function(x){return /^en/i.test(x.lang);})||null;}catch(e){}}
+if("speechSynthesis" in window){pickVoice();speechSynthesis.onvoiceschanged=pickVoice;}
+function say(t){if(!("speechSynthesis" in window))return;try{speechSynthesis.cancel();var u=new SpeechSynthesisUtterance(t);u.lang="en-GB";if(voice)u.voice=voice;u.rate=.85;speechSynthesis.speak(u);}catch(e){}}
+
+/* ---------- tabs ---------- */
+var tabs=document.querySelectorAll(".tab");
+tabs.forEach(function(tb){tb.addEventListener("click",function(){
+  tabs.forEach(function(x){x.setAttribute("aria-selected","false");document.getElementById(x.dataset.p).classList.remove("on");});
+  tb.setAttribute("aria-selected","true");document.getElementById(tb.dataset.p).classList.add("on");window.scrollTo({top:0});});});
+
+/* ---------- 1. cards ---------- */
+(function(){
+  var grid=document.getElementById("cardGrid");
+  WORDS.forEach(function(o){
+    var c=document.createElement("div");c.className="card";c.tabIndex=0;c.setAttribute("role","button");c.setAttribute("aria-label","Card: "+o.w);
+    c.innerHTML='<div class="front">'+svg(o.w)+'<div class="wordline"><span class="w">'+o.w+'</span><button class="say" type="button" aria-label="Listen to '+o.w+'">🔊</button></div>'+
+      '<div class="hint">tap to see the meaning</div></div>'+
+      '<div class="back"><span class="chipw">'+o.w+'</span><p class="def">'+o.d+'</p><p class="trans" lang="ru" hidden>'+o.r+'</p>'+
+      '<p class="ex">'+o.e+'</p><div class="tools"><button class="say" type="button" aria-label="Listen">🔊</button><button class="rub" type="button">RU</button></div></div>';
+    var tr=c.querySelector(".trans"),rub=c.querySelector(".rub");
+    c.addEventListener("click",function(ev){
+      if(ev.target.closest(".say")){ev.stopPropagation();say(c.classList.contains("flipped")?o.w+". "+o.d:o.w);return;}
+      if(ev.target.closest(".rub")){ev.stopPropagation();tr.hidden=!tr.hidden;rub.textContent=tr.hidden?"RU":"Hide RU";return;}
+      c.classList.toggle("flipped");
+      if(c.classList.contains("flipped"))say(o.w);else{tr.hidden=true;rub.textContent="RU";}
+    });
+    c.addEventListener("keydown",function(ev){if((ev.key==="Enter"||ev.key===" ")&&ev.target===c){ev.preventDefault();c.click();}});
+    grid.appendChild(c);
+  });
+})();
+
+/* ---------- matching engine ---------- */
+function makeMatch(leftEl,rightEl,items,noteEl){
+  var pick=null,solved=0;
+  [leftEl,rightEl].forEach(function(el){Array.prototype.slice.call(el.querySelectorAll(".opt")).forEach(function(n){n.remove();});});
+  noteEl.textContent="";noteEl.className="note";
+  shuffle(items).forEach(function(it){
+    var b=document.createElement("button");b.type="button";b.className="opt";b.dataset.w=it.w;b.innerHTML=it.html;
+    b.addEventListener("click",function(){if(b.classList.contains("done"))return;if(pick)pick.classList.remove("pick");pick=(pick===b)?null:b;if(pick)pick.classList.add("pick");});
+    leftEl.appendChild(b);
+  });
+  shuffle(items).forEach(function(it){
+    var b=document.createElement("button");b.type="button";b.className="opt word-opt";b.dataset.w=it.w;b.textContent=it.w;
+    b.addEventListener("click",function(){
+      if(b.classList.contains("done"))return;say(it.w);
+      if(!pick){noteEl.textContent="Choose from the left column first.";noteEl.className="note bad";return;}
+      if(pick.dataset.w===it.w){pick.classList.remove("pick");pick.classList.add("done");b.classList.add("done");pick=null;solved++;
+        noteEl.className="note good";noteEl.textContent=solved===items.length?"All eight pairs! Well done.":"Correct! "+solved+"/"+items.length;}
+      else{var bad=pick;b.classList.add("bad");bad.classList.add("bad");noteEl.textContent="Not that one. Look again.";noteEl.className="note bad";
+        setTimeout(function(){b.classList.remove("bad");bad.classList.remove("bad");},400);}
+    });
+    rightEl.appendChild(b);
+  });
+}
+function startPicMatch(){makeMatch(document.getElementById("picCol"),document.getElementById("picWords"),WORDS.map(function(o){return{w:o.w,html:svg(o.w)};}),document.getElementById("note2"));}
+function startDefMatch(){makeMatch(document.getElementById("defCol"),document.getElementById("defWords"),WORDS.map(function(o){return{w:o.w,html:"<span>"+o.d+"</span>"};}),document.getElementById("note3"));}
+document.getElementById("reset2").addEventListener("click",startPicMatch);
+document.getElementById("reset3").addEventListener("click",startDefMatch);
+startPicMatch();startDefMatch();
+
+/* ---------- 4. story ---------- */
+(function(){
+  var parts=["Last summer we visited my grandma. She lives in a small ",{a:"village"}," near a big ",{a:"forest"},
+    ". Every morning we walked along a narrow ",{a:"path"}," through the trees. Behind the village there is a very high ",{a:"mountain"},
+    " with snow at the top. We had a picnic in a ",{a:"field"},", next to some cows. In the afternoon we swam in a ",{a:"lake"},
+    ", and in the middle of it there was a little ",{a:"island"}," with one tree on it. On the last day we went fishing in the ",{a:"river"},
+    ", but we didn't catch any fish!"];
+  var storyEl=document.getElementById("story"),chipsEl=document.getElementById("storyChips"),note=document.getElementById("note4"),blanks=[],sel=null;
+  parts.forEach(function(p){
+    if(typeof p==="string"){storyEl.appendChild(document.createTextNode(p));return;}
+    var b=document.createElement("button");b.type="button";b.className="blank";b.dataset.answer=p.a;b.dataset.filled="";b.textContent="\u00A0?\u00A0";
+    b.addEventListener("click",function(){
+      if(b.dataset.filled){var chip=chipsEl.querySelector('[data-w="'+b.dataset.filled+'"]');if(chip)chip.classList.remove("used");b.dataset.filled="";b.textContent="\u00A0?\u00A0";b.className="blank";}
+      if(sel&&sel!==b)sel.classList.remove("sel");sel=(sel===b)?null:b;if(sel)sel.classList.add("sel");
+    });
+    storyEl.appendChild(b);blanks.push(b);
+  });
+  shuffle(WORDS).forEach(function(o){
+    var c=document.createElement("button");c.type="button";c.className="chip";c.dataset.w=o.w;c.textContent=o.w;
+    c.addEventListener("click",function(){say(o.w);if(c.classList.contains("used"))return;
+      if(!sel){note.textContent="Tap a gap in the story first.";note.className="note bad";return;}
+      sel.dataset.filled=o.w;sel.textContent=o.w;sel.className="blank";c.classList.add("used");sel=null;note.textContent="";note.className="note";});
+    chipsEl.appendChild(c);
+  });
+  document.getElementById("checkStory").addEventListener("click",function(){
+    var right=0,empty=0;
+    blanks.forEach(function(b){b.classList.remove("ok","no","sel");if(!b.dataset.filled){empty++;return;}
+      if(b.dataset.filled===b.dataset.answer){b.classList.add("ok");right++;}else b.classList.add("no");});
+    if(empty){note.textContent="Fill every gap first. "+empty+" to go.";note.className="note bad";return;}
+    if(right===blanks.length){note.textContent="Perfect! Eight out of eight. Now read the story out loud.";note.className="note good";}
+    else{note.textContent=right+"/"+blanks.length+" correct. Tap the red gaps and try again.";note.className="note bad";}
+  });
+})();
+
+/* ---------- 5. quiz ---------- */
+(function(){
+  var box=document.getElementById("qbox"),trailEl=document.getElementById("trail"),scoreEl=document.getElementById("score");
+  var qs=[],i=0,score=0,locked=false;
+  function options(c){return shuffle(shuffle(WORDS.filter(function(o){return o.w!==c;})).slice(0,3).map(function(o){return o.w;}).concat([c]));}
+  function build(){var p=shuffle(WORDS),l=[];
+    p.slice(0,3).forEach(function(o){l.push({t:"pic",w:o.w});});
+    p.slice(3,6).forEach(function(o){l.push({t:"def",w:o.w});});
+    p.slice(6,8).forEach(function(o){l.push({t:"letters",w:o.w});});
+    var q=shuffle(WORDS);l.push({t:"listen",w:q[0].w});l.push({t:"listen",w:q[1].w});
+    qs=shuffle(l);i=0;score=0;}
+  function drawTrail(){var n=qs.length,st=360/(n-1),m="";
+    for(var k=0;k<n;k++){var x=20+k*st;m+='<circle cx="'+x+'" cy="24" r="7" fill="'+(k<i?"#4E9A3E":(k===i?"#F5C342":"#B9D3B0"))+'"/>';}
+    var hx=20+Math.min(i,n-1)*st;
+    trailEl.innerHTML='<svg class="trail" viewBox="0 0 400 40" aria-label="Question '+Math.min(i+1,n)+' of '+n+'"><line x1="20" y1="24" x2="380" y2="24" stroke="#C9A97A" stroke-width="4" stroke-dasharray="6 6"/>'+m+'<text x="'+hx+'" y="13" text-anchor="middle" font-size="14">🚶</text></svg>';
+    scoreEl.textContent="Steps: "+score+" / "+n;}
+  function next(){locked=false;if(i>=qs.length){finish();return;}drawTrail();
+    var q=qs[i],o=find(q.w);box.innerHTML="";var head=document.createElement("div");
+    if(q.t==="pic")head.innerHTML='<div class="qpic">'+svg(o.w)+'</div><p class="qtext">What is it?</p>';
+    else if(q.t==="listen")head.innerHTML='<p class="qtext">Listen and choose the word.</p>';
+    else head.innerHTML='<p class="qtext">'+o.d+'</p>';
+    box.appendChild(head);
+    if(q.t==="letters"){lettersQ(o);return;}
+    if(q.t==="listen"){var play=document.createElement("button");play.className="go quiet";play.type="button";play.textContent="🔊 Play the word";
+      play.style.margin="0 auto";play.addEventListener("click",function(){say(o.w);});box.appendChild(play);say(o.w);}
+    var grid=document.createElement("div");grid.className="qgrid";
+    options(o.w).forEach(function(w){var b=document.createElement("button");b.className="opt word-opt";b.type="button";b.textContent=w;
+      b.addEventListener("click",function(){if(locked)return;locked=true;
+        if(w===o.w){b.classList.add("done");score++;say(o.w);}
+        else{b.classList.add("bad");Array.prototype.slice.call(grid.children).forEach(function(c){if(c.textContent===o.w)c.classList.add("done");});say(o.w);}
+        setTimeout(function(){i++;next();},1100);});
+      grid.appendChild(b);});
+    box.appendChild(grid);}
+  function lettersQ(o){var target=o.w,built="";
+    var line=document.createElement("div");line.className="slotline";line.textContent="\u00A0";
+    var tiles=document.createElement("div");tiles.className="tiles";box.appendChild(line);box.appendChild(tiles);
+    var chars;do{chars=shuffle(target.split(""));}while(chars.join("")===target);
+    chars.forEach(function(ch){var b=document.createElement("button");b.className="tile";b.type="button";b.textContent=ch;
+      b.addEventListener("click",function(){if(locked||b.classList.contains("used"))return;b.classList.add("used");built+=ch;line.textContent=built;
+        if(built.length===target.length){locked=true;if(built===target)score++;line.textContent=target;line.style.color=built===target?"var(--ok)":"var(--wrong)";say(target);
+          setTimeout(function(){i++;next();},1300);}});
+      tiles.appendChild(b);});
+    var undo=document.createElement("button");undo.className="go quiet";undo.type="button";undo.textContent="Start this word again";
+    undo.addEventListener("click",function(){if(locked)return;built="";line.textContent="\u00A0";Array.prototype.slice.call(tiles.children).forEach(function(c){c.classList.remove("used");});});
+    box.appendChild(undo);}
+  function finish(){drawTrail();
+    var msg=score===qs.length?"You walked the whole trail. Fantastic!":score>=qs.length-2?"Great work, nearly all of them.":"Good try. Go back to the cards and play again.";
+    box.innerHTML='<p class="result">'+score+' / '+qs.length+'</p><p class="qtext">'+msg+'</p>';
+    var a=document.createElement("button");a.className="go";a.type="button";a.textContent="Play the quiz again";a.addEventListener("click",function(){build();next();});box.appendChild(a);}
+  build();next();
+})();
+})();
+</script>
+</body>
+</html>
