@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Monster Lab — Halloween, Super Minds 4</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;800&family=Creepster&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#ffffff; --ink:#2a1846; --soft:#6b5a85; --line:#e4dcef;
+  --orange:#f07c1e; --orange-soft:#fff1e3; --purple:#4b2a86; --purple-soft:#f1ecfa;
+  --ok:#2f9e44; --ok-soft:#e6f6e9; --bad:#d6336c; --bad-soft:#fde8ef;
+  --card:#ffffff; --card-back:#2a1846; --card-back-ink:#ffffff; --stage:#f6f2fc;
+  color-scheme:light; box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#170f26; --ink:#f3ecff; --soft:#b6a8cc; --line:#34264d;
+    --orange:#ff9a3d; --orange-soft:#3a2615; --purple:#c9b2ff; --purple-soft:#271a3d;
+    --ok:#5fd37a; --ok-soft:#173322; --bad:#ff7aa6; --bad-soft:#3a1626;
+    --card:#21163a; --card-back:#ff9a3d; --card-back-ink:#1b1030; --stage:#211638;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#170f26; --ink:#f3ecff; --soft:#b6a8cc; --line:#34264d;
+  --orange:#ff9a3d; --orange-soft:#3a2615; --purple:#c9b2ff; --purple-soft:#271a3d;
+  --ok:#5fd37a; --ok-soft:#173322; --bad:#ff7aa6; --bad-soft:#3a1626;
+  --card:#21163a; --card-back:#ff9a3d; --card-back-ink:#1b1030; --stage:#211638;
+  color-scheme:dark;
+}
+*,*::before,*::after{box-sizing:border-box}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Baloo 2","Trebuchet MS","Segoe UI",system-ui,sans-serif;font-size:18px;line-height:1.45}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible{outline:3px solid var(--orange);outline-offset:2px}
+.wrap{max-width:960px;margin:0 auto;padding:16px 16px 48px}
+header{display:flex;align-items:center;gap:14px;padding:8px 0 4px}
+header .moon{font-size:46px;line-height:1}
+h1{font-family:"Creepster","Baloo 2",cursive;font-weight:400;font-size:clamp(40px,8vw,64px);line-height:1;margin:0;color:var(--orange);letter-spacing:.02em}
+.sub{margin:2px 0 0;color:var(--soft);font-size:16px}
+nav{display:flex;gap:8px;flex-wrap:wrap;margin:18px 0 20px}
+nav button{border:2px solid var(--line);background:var(--card);border-radius:999px;padding:6px 14px;font-weight:600;font-size:16px}
+nav button .n{display:inline-grid;place-items:center;width:24px;height:24px;border-radius:50%;background:var(--purple-soft);color:var(--purple);margin-right:6px;font-size:14px}
+nav button[aria-current="true"]{border-color:var(--orange);background:var(--orange-soft)}
+nav button[aria-current="true"] .n{background:var(--orange);color:#fff}
+nav button .done{margin-left:6px;color:var(--ok)}
+section{display:none}
+section.on{display:block}
+h2{font-size:26px;margin:0 0 2px;font-weight:800}
+.task-ru{color:var(--soft);margin:0 0 16px;font-size:16px}
+.pic{display:inline-block;line-height:1}
+.pic svg{width:1em;height:1em;vertical-align:-.1em}
+
+/* cards */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:14px}
+.flip{perspective:900px;height:240px}
+.flip-in{position:relative;width:100%;height:100%;transition:transform .5s;transform-style:preserve-3d;cursor:pointer;border-radius:18px}
+.flip.turned .flip-in{transform:rotateY(180deg)}
+.face{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;border-radius:18px;padding:14px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}
+.front{background:var(--card);border:2px solid var(--line)}
+.front .pic{font-size:72px;margin-bottom:8px}
+.front .w{font-size:24px;font-weight:800}
+.back{background:var(--card-back);color:var(--card-back-ink);transform:rotateY(180deg);font-size:16px;line-height:1.3;padding-bottom:54px}
+.back .w{font-weight:800;font-size:19px;margin-bottom:6px}
+.icon-btn{position:absolute;bottom:10px;width:40px;height:40px;border-radius:50%;border:2px solid currentColor;background:transparent;display:grid;place-items:center;font-size:18px;font-weight:800}
+.front .icon-btn{right:10px;border-color:var(--line)}
+.back .say{right:10px}
+.back .ru-btn{left:10px;font-size:13px}
+.ru-text{min-height:24px;margin-top:8px;font-weight:700;opacity:0;transition:opacity .2s}
+.ru-text.show{opacity:1}
+
+/* common */
+.fb{margin-top:14px;padding:12px 14px;border-radius:14px;font-size:17px;display:none}
+.fb.show{display:block}
+.fb.ok{background:var(--ok-soft);border-left:5px solid var(--ok)}
+.fb.bad{background:var(--bad-soft);border-left:5px solid var(--bad)}
+.score{margin-top:16px;font-weight:700;font-size:19px}
+.btn{border:none;background:var(--orange);color:#fff;border-radius:12px;padding:8px 18px;font-weight:700;font-size:17px}
+.btn.ghost{background:transparent;color:var(--ink);border:2px solid var(--line)}
+.btn:disabled{opacity:.45;cursor:default}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:14px}
+.paper{background:var(--purple-soft);border-radius:18px;padding:14px 18px;font-size:19px;line-height:1.55;max-width:68ch}
+.paper.hidden-text .txt{filter:blur(7px);user-select:none}
+.counter{color:var(--soft);font-size:16px}
+
+/* monster lab */
+.lab{display:grid;grid-template-columns:minmax(240px,1fr) 1.3fr;gap:18px;margin-top:16px;align-items:start}
+@media (max-width:700px){.lab{grid-template-columns:1fr}}
+.stage{background:var(--stage);border-radius:22px;padding:10px;display:grid;place-items:center;position:sticky;top:8px}
+@media (max-width:700px){.stage{position:static}}
+.stage svg{width:100%;max-width:280px;height:auto}
+.opt-row{margin-bottom:10px}
+.opt-row .lbl{font-size:15px;color:var(--soft);margin-bottom:4px}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{border:2px solid var(--line);background:var(--card);border-radius:999px;padding:3px 12px;font-weight:600;font-size:16px}
+.chip[aria-pressed="true"]{border-color:var(--orange);background:var(--orange-soft)}
+.chip.swatch::before{content:"";display:inline-block;width:12px;height:12px;border-radius:50%;margin-right:6px;background:var(--sw);vertical-align:-1px}
+
+/* potion */
+.kitchen{display:grid;grid-template-columns:minmax(220px,1fr) 1.3fr;gap:18px;margin-top:16px;align-items:start}
+@media (max-width:700px){.kitchen{grid-template-columns:1fr}}
+.cauldron svg{width:100%;max-width:260px;height:auto;display:block;margin:0 auto}
+.ingr{display:grid;grid-template-columns:repeat(auto-fill,minmax(118px,1fr));gap:8px}
+.ing{border:2px solid var(--line);background:var(--card);border-radius:14px;padding:6px 8px;display:flex;flex-direction:column;align-items:center;font-weight:600;font-size:15px;line-height:1.2}
+.ing .e{font-size:32px;line-height:1.2}
+.ing .e svg{width:1em;height:1em}
+.log{margin-top:10px;font-size:16px;color:var(--soft);min-height:24px}
+.pop svg{width:1em;height:1em}
+.pop{position:absolute;font-size:30px;animation:drop .7s ease-in forwards;pointer-events:none}
+@keyframes drop{from{transform:translateY(-60px);opacity:1}to{transform:translateY(40px);opacity:0}}
+.cauldron{position:relative;background:var(--stage);border-radius:22px;padding:12px}
+#spoon{transform-origin:150px 95px;transition:transform .35s}
+.bub{opacity:0}
+.boil .bub{animation:bub 1.4s infinite}
+.boil .bub:nth-of-type(2){animation-delay:.4s}
+.boil .bub:nth-of-type(3){animation-delay:.8s}
+@keyframes bub{0%{opacity:0;transform:translateY(0)}30%{opacity:1}100%{opacity:0;transform:translateY(-34px)}}
+@media (prefers-reduced-motion:reduce){.boil .bub,.pop{animation:none}.flip-in{transition:none}}
+
+/* quiz */
+.q{border:2px solid var(--line);border-radius:16px;padding:14px;margin-bottom:12px;background:var(--card)}
+.q .t{font-size:20px;margin-bottom:10px}
+.opts{display:flex;gap:8px;flex-wrap:wrap}
+.opt{border:2px solid var(--line);background:var(--bg);border-radius:12px;padding:6px 14px;font-weight:600;font-size:18px;text-align:left}
+.opt.right{border-color:var(--ok);background:var(--ok-soft)}
+.opt.wrong{border-color:var(--bad);background:var(--bad-soft)}
+.opt:disabled{cursor:default}
+.q .fb{margin-top:10px}
+.who{display:grid;grid-template-columns:170px 1fr;gap:14px;align-items:start}
+@media (max-width:560px){.who{grid-template-columns:1fr}}
+.who .mini{background:var(--stage);border-radius:16px;padding:6px}
+.who .mini svg{width:100%;max-width:170px;height:auto;display:block;margin:0 auto}
+.who .opts{flex-direction:column}
+.who .opt{font-size:16px;line-height:1.35;font-weight:500}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="moon" aria-hidden="true">🧪</div>
+    <div>
+      <h1>Monster Lab</h1>
+      <p class="sub">Super Minds 4 · Halloween, уровень посложнее</p>
+    </div>
+  </header>
+
+  <nav id="nav"></nav>
+
+  <section id="s1">
+    <h2>Learn the words</h2>
+    <p class="task-ru">Нажми на карточку, чтобы перевернуть. 🔊 — послушать, RU — перевод.</p>
+    <div class="grid" id="cards"></div>
+  </section>
+
+  <section id="s2">
+    <h2>Build the monster</h2>
+    <p class="task-ru">Прочитай описание и собери такого же монстра. Чтобы было сложнее — включи «Listen only» и собирай на слух.</p>
+    <div class="counter" id="mCount"></div>
+    <div class="paper" id="mPaper"><span class="txt" id="mText"></span></div>
+    <div class="row">
+      <button class="btn ghost" id="mSay">🔊 Listen</button>
+      <button class="btn ghost" id="mHide" aria-pressed="false">🎧 Listen only</button>
+    </div>
+    <div class="lab">
+      <div class="stage" id="mStage"></div>
+      <div id="mOpts"></div>
+    </div>
+    <div class="row">
+      <button class="btn" id="mCheck">Check my monster</button>
+      <button class="btn ghost" id="mNext" disabled>Next monster</button>
+    </div>
+    <div class="fb" id="mFb"></div>
+    <div class="score" id="mScore"></div>
+  </section>
+
+  <section id="s3">
+    <h2>Brew the potion</h2>
+    <p class="task-ru">Прочитай рецепт и свари зелье. Порядок и количество важны! 🥄 Stir — помешать один раз.</p>
+    <div class="counter" id="pCount"></div>
+    <div class="paper"><b id="pName"></b><br><span id="pText"></span></div>
+    <div class="row"><button class="btn ghost" id="pSay">🔊 Listen</button></div>
+    <div class="kitchen">
+      <div class="cauldron" id="pPot"></div>
+      <div>
+        <div class="ingr" id="pIngr"></div>
+        <div class="row">
+          <button class="btn ghost" id="pStir">🥄 Stir</button>
+          <button class="btn ghost" id="pEmpty">↺ Empty the cauldron</button>
+        </div>
+        <div class="log" id="pLog"></div>
+      </div>
+    </div>
+    <div class="row">
+      <button class="btn" id="pCheck">✨ The potion is ready!</button>
+      <button class="btn ghost" id="pNext" disabled>Next potion</button>
+    </div>
+    <div class="fb" id="pFb"></div>
+    <div class="score" id="pScore"></div>
+  </section>
+
+  <section id="s4">
+    <h2>Grammar spell</h2>
+    <p class="task-ru">has got / have got, can, its, Past Simple и сравнения. Выбери правильный вариант.</p>
+    <div id="quiz"></div>
+    <div class="score" id="qScore"></div>
+  </section>
+
+  <section id="s5">
+    <h2>Which description is right?</h2>
+    <p class="task-ru">Посмотри на монстра и выбери описание без ошибок. Читай очень внимательно — отличается одна деталь!</p>
+    <div id="who"></div>
+    <div class="row"><button class="btn ghost" id="wNew">New monsters</button></div>
+    <div class="score" id="wScore"></div>
+  </section>
+</div>
+
+<script>
+/* ================= icons ================= */
+const ICON = {
+  horns:'<svg viewBox="0 0 64 64" aria-hidden="true"><path d="M14 50C6 34 8 16 20 8c-2 12 2 24 12 34z" fill="#efe1bd" stroke="#a98f55" stroke-width="2"/><path d="M50 50c8-16 6-34-6-42 2 12-2 24-12 34z" fill="#efe1bd" stroke="#a98f55" stroke-width="2"/><ellipse cx="32" cy="54" rx="22" ry="8" fill="#8e5bd6"/></svg>',
+  fangs:'<svg viewBox="0 0 64 64" aria-hidden="true"><path d="M8 22q24 36 48 0z" fill="#5a1328"/><path d="M8 22h48" stroke="#d94f7a" stroke-width="5" stroke-linecap="round"/><path d="M17 24l5 18 5-18zM37 24l5 18 5-18z" fill="#fff" stroke="#ccc"/></svg>',
+  claws:'<svg viewBox="0 0 64 64" aria-hidden="true"><ellipse cx="32" cy="42" rx="20" ry="16" fill="#5cb85c"/><path d="M16 30c-4-10-2-18 4-22 0 8 2 14 6 18zM29 28c-2-11 1-19 7-22-1 8 0 15 3 21zM42 30c2-10 7-16 13-17-3 7-4 14-5 20z" fill="#fff" stroke="#999" stroke-width="1.5"/></svg>',
+  tail:'<svg viewBox="0 0 64 64" aria-hidden="true"><path d="M6 54q30 6 40-28" stroke="#4a90d9" stroke-width="8" fill="none" stroke-linecap="round"/><path d="M36 28l12-22 8 24z" fill="#2e64a3"/></svg>',
+  wings:'<svg viewBox="0 0 64 64" aria-hidden="true"><path d="M32 30L4 10l6 18-8 6 12 6-4 12 22-14zM32 30l28-20-6 18 8 6-12 6 4 12-22-14z" fill="#3a2a55"/></svg>',
+  fur:'<svg viewBox="0 0 64 64" aria-hidden="true"><path d="M32 6l5 7 8-4 1 9 9 0-3 8 8 4-7 6 5 8-9 1 0 9-8-3-4 8-5-7-5 7-4-8-8 3 0-9-9-1 5-8-7-6 8-4-3-8 9 0 1-9 8 4z" fill="#a0632e"/></svg>',
+  scales:'<svg viewBox="0 0 64 64" aria-hidden="true"><rect x="4" y="4" width="56" height="56" rx="14" fill="#5cb85c"/><g fill="none" stroke="#2f7a2f" stroke-width="2.5"><path d="M6 20q8 10 16 0q8 10 16 0q8 10 16 0q4 5 8 0"/><path d="M-2 34q8 10 16 0q8 10 16 0q8 10 16 0q8 10 16 0"/><path d="M6 48q8 10 16 0q8 10 16 0q8 10 16 0"/></g></svg>',
+  slimy:'<svg viewBox="0 0 64 64" aria-hidden="true"><path d="M10 30q0-22 22-22t22 22v8q0 6-3 6t-3-6v6q0 8-4 8t-4-8v-4q0 14-5 14t-5-14v4q0 6-4 6t-4-6v-2q0 5-4 5t-4-5z" fill="#7cd14b"/><ellipse cx="24" cy="20" rx="6" ry="3" fill="#fff" opacity=".6"/></svg>',
+  cauldron:'<svg viewBox="0 0 64 64" aria-hidden="true"><circle cx="24" cy="12" r="4" fill="#7cd14b"/><circle cx="36" cy="8" r="3" fill="#7cd14b"/><path d="M8 24q0 34 24 34t24-34z" fill="#2b2b33"/><ellipse cx="32" cy="24" rx="26" ry="6" fill="#444"/><ellipse cx="32" cy="24" rx="21" ry="4" fill="#7cd14b"/><path d="M16 56l-4 6M48 56l4 6" stroke="#2b2b33" stroke-width="4"/></svg>',
+  seeds:'<svg viewBox="0 0 64 64" aria-hidden="true"><g fill="#f3e6b0" stroke="#b8a160" stroke-width="2"><ellipse cx="20" cy="22" rx="8" ry="13" transform="rotate(-25 20 22)"/><ellipse cx="42" cy="24" rx="8" ry="13" transform="rotate(20 42 24)"/><ellipse cx="31" cy="46" rx="8" ry="13" transform="rotate(-5 31 46)"/></g></svg>'
+};
+function pic(w){ return '<span class="pic">' + (ICON[w.icon] || w.emoji) + '</span>'; }
+
+/* ================= words ================= */
+const WORDS = [
+  {id:'horns', en:'horns', ru:'рога', icon:'horns', def:'Hard, pointed things on the head of a bull or a goat.'},
+  {id:'fangs', en:'fangs', ru:'клыки', icon:'fangs', def:'Long, sharp teeth. Vampires and snakes bite with them.'},
+  {id:'claws', en:'claws', ru:'когти', icon:'claws', def:'Sharp, hard nails on the feet of a cat or a bird.'},
+  {id:'tail', en:'tail', ru:'хвост', icon:'tail', def:'The long part at the back of a dog or a cat. A happy dog wags it.'},
+  {id:'wings', en:'wings', ru:'крылья', icon:'wings', def:'Birds and bats use them to fly.'},
+  {id:'fur', en:'fur', ru:'мех, шерсть', icon:'fur', def:'The soft hair on a cat, a dog or a bear.'},
+  {id:'scales', en:'scales', ru:'чешуя', icon:'scales', def:'Small, hard, flat pieces on the skin of a fish or a snake.'},
+  {id:'slimy', en:'slimy', ru:'склизкий, слизистый', icon:'slimy', def:'Wet and sticky, like a snail.'},
+  {id:'cauldron', en:'cauldron', ru:'котёл', icon:'cauldron', def:'A very big black pot. Witches cook magic drinks in it.'},
+  {id:'potion', en:'potion', ru:'зелье', emoji:'🧪', def:'A magic drink. It can make you fly or disappear!'},
+  {id:'stir', en:'stir', ru:'помешивать', emoji:'🥄', def:'Move a spoon round and round in soup or a drink.'},
+  {id:'spell', en:'spell', ru:'заклинание', emoji:'🪄', def:'Magic words. A witch says them to do magic.'},
+  {id:'frog', en:'frog', ru:'лягушка', emoji:'🐸', def:'A small green animal. It jumps and lives near water.'},
+  {id:'worm', en:'worm', ru:'червяк', emoji:'🪱', def:'A long, thin animal with no legs. It lives in the ground.'},
+  {id:'mushroom', en:'mushroom', ru:'гриб', emoji:'🍄', def:'It grows in the forest. Some are good to eat, but some can make you ill.'},
+  {id:'seeds', en:'seeds', ru:'семечки, семена', icon:'seeds', def:'Small things inside a fruit. Put them in the ground and a new plant grows.'}
+];
+const byId = Object.fromEntries(WORDS.map(w => [w.id, w]));
+
+/* ================= speech ================= */
+let voice = null;
+function pickVoice(){ const vs = speechSynthesis.getVoices(); voice = vs.find(v => v.lang === 'en-GB') || vs.find(v => v.lang && v.lang.startsWith('en')) || null; }
+if ('speechSynthesis' in window){ pickVoice(); speechSynthesis.onvoiceschanged = pickVoice; }
+function say(text, rate){
+  if (!('speechSynthesis' in window)) return;
+  speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(text.replace(/[“”«»]/g, '').replace(/’/g, "'"));
+  u.lang = 'en-GB'; if (voice) u.voice = voice; u.rate = rate || 0.85;
+  speechSynthesis.speak(u);
+}
+
+/* ================= helpers ================= */
+const $ = id => document.getElementById(id);
+const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--){ const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const rnd = a => a[Math.floor(Math.random() * a.length)];
+function feedback(el, ok, html){ el.className = 'fb show ' + (ok ? 'ok' : 'bad'); el.innerHTML = html; }
+const doneSteps = new Set();
+const STEPS = ['Слова','Собери монстра','Свари зелье','Грамматика','Найди описание'];
+let current = 1;
+function renderNav(){
+  $('nav').innerHTML = STEPS.map((s, i) => `<button data-s="${i+1}" aria-current="${current === i+1}"><span class="n">${i+1}</span>${s}${doneSteps.has(i+1) ? '<span class="done">✓</span>' : ''}</button>`).join('');
+  $('nav').querySelectorAll('button').forEach(b => b.onclick = () => go(+b.dataset.s));
+}
+function go(n){ current = n; document.querySelectorAll('section').forEach((s, i) => s.classList.toggle('on', i + 1 === n)); renderNav(); if ('speechSynthesis' in window) speechSynthesis.cancel(); }
+function markDone(n){ doneSteps.add(n); renderNav(); }
+
+/* ================= 1. cards ================= */
+$('cards').innerHTML = WORDS.map(w => `
+  <div class="flip" data-id="${w.id}">
+    <div class="flip-in" role="button" tabindex="0" aria-label="${w.en} card">
+      <div class="face front">${pic(w)}<div class="w">${w.en}</div>
+        <button class="icon-btn say" aria-label="Listen: ${w.en}">🔊</button></div>
+      <div class="face back"><div class="w">${w.en}</div><div>${w.def}</div>
+        <div class="ru-text">${w.ru}</div>
+        <button class="icon-btn ru-btn" aria-label="Перевод">RU</button>
+        <button class="icon-btn say" aria-label="Listen to the explanation">🔊</button></div>
+    </div>
+  </div>`).join('');
+const seen = new Set();
+document.querySelectorAll('.flip').forEach(card => {
+  const w = byId[card.dataset.id], inner = card.querySelector('.flip-in');
+  const turn = () => { card.classList.toggle('turned'); if (card.classList.contains('turned')){ seen.add(w.id); if (seen.size === WORDS.length) markDone(1); } };
+  inner.addEventListener('click', turn);
+  inner.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' '){ e.preventDefault(); turn(); } });
+  card.querySelector('.front .say').addEventListener('click', e => { e.stopPropagation(); say(w.en); });
+  card.querySelector('.back .say').addEventListener('click', e => { e.stopPropagation(); say(w.en + '. ' + w.def); });
+  card.querySelector('.ru-btn').addEventListener('click', e => { e.stopPropagation(); card.querySelector('.ru-text').classList.toggle('show'); });
+});
+
+/* ================= monster drawing ================= */
+const COLORS = {purple:['#8e5bd6','#5e3a99'], green:['#5cb85c','#3b8a3b'], orange:['#f08a24','#b85f10'], blue:['#4a90d9','#2e64a3'], grey:['#bdb7c8','#8a8496']};
+let clipN = 0;
+function monster(f){
+  const [c, d] = COLORS[f.color] || COLORS.grey;
+  const id = 'cb' + (clipN++);
+  let s = `<svg viewBox="0 0 240 270" role="img" aria-label="monster">`;
+  // body shape
+  let bodyShape;
+  if (f.skin === 'fur'){
+    const pts = [];
+    for (let a = 0; a < 360; a += 8){ const r = (a / 8) % 2 ? 1.13 : 1; const rad = a * Math.PI / 180; pts.push((120 + 70 * r * Math.cos(rad)).toFixed(1) + ',' + (150 + 85 * r * Math.sin(rad)).toFixed(1)); }
+    bodyShape = `<polygon points="${pts.join(' ')}"/>`;
+  } else bodyShape = `<ellipse cx="120" cy="150" rx="70" ry="85"/>`;
+  s += `<defs><clipPath id="${id}">${bodyShape}</clipPath></defs>`;
+  if (f.wings){
+    const wing = `<path d="M75 125L12 70l14 42-22 8 26 20-12 22 60-12z" fill="#3a2a55" stroke="#241838" stroke-width="2"/>`;
+    s += wing + `<g transform="translate(240,0) scale(-1,1)">${wing}</g>`;
+  }
+  if (f.tail) s += `<path d="M165 215q60 20 48-50" stroke="${d}" stroke-width="13" fill="none" stroke-linecap="round"/><path d="M200 172l14-30 12 32z" fill="${d}"/>`;
+  if (f.horns) s += `<path d="M88 92C70 70 68 44 78 26c4 20 14 38 30 52z" fill="#efe1bd" stroke="#a98f55" stroke-width="2"/><path d="M152 92c18-22 20-48 10-66-4 20-14 38-30 52z" fill="#efe1bd" stroke="#a98f55" stroke-width="2"/>`;
+  s += `<ellipse cx="95" cy="246" rx="22" ry="10" fill="${d}"/><ellipse cx="145" cy="246" rx="22" ry="10" fill="${d}"/>`;
+  // arms
+  s += `<path d="M58 165L28 192M182 165l30 27" stroke="${c}" stroke-width="15" stroke-linecap="round"/>`;
+  if (f.claws) s += `<g fill="#fff" stroke="#888" stroke-width="1.5"><path d="M20 190l-10-4 12-4zM22 198l-10 4 12 2zM30 202l-2 10 8-8z"/><path d="M220 190l10-4-12-4zM218 198l10 4-12 2zM210 202l2 10-8-8z"/></g>`;
+  else s += `<circle cx="28" cy="192" r="10" fill="${c}"/><circle cx="212" cy="192" r="10" fill="${c}"/>`;
+  // body
+  s += bodyShape.replace('/>', ` fill="${c}"/>`);
+  if (f.skin === 'scales'){
+    let p = '';
+    for (let y = 85, r = 0; y < 240; y += 16, r++) for (let x = 40 + (r % 2) * 10; x < 200; x += 20) p += `M${x} ${y}q10 11 20 0`;
+    s += `<path d="${p}" clip-path="url(#${id})" stroke="${d}" stroke-width="2.5" fill="none"/>`;
+  }
+  if (f.skin === 'slimy'){
+    s += `<g fill="${c}"><path d="M70 205q0 0 0 28a7 7 0 0 0 14 0v-22z"/><path d="M118 222v22a7 7 0 0 0 14 0v-22z"/><path d="M160 200v18a6 6 0 0 0 12 0v-26z"/></g><ellipse cx="88" cy="102" rx="16" ry="8" fill="#fff" opacity=".45" transform="rotate(-25 88 102)"/>`;
+  }
+  // eyes
+  const eyes = {1:[[120,125,24]], 2:[[96,125,17],[144,125,17]], 3:[[84,125,14],[120,115,14],[156,125,14]]}[f.eyes] || [];
+  eyes.forEach(([x,y,r]) => { s += `<circle cx="${x}" cy="${y}" r="${r}" fill="#fff" stroke="${d}" stroke-width="2"/><circle cx="${x+2}" cy="${y+2}" r="${r*0.45}" fill="#1b1030"/>`; });
+  // mouth
+  if (f.fangs) s += `<path d="M88 172q32 34 64 0z" fill="#5a1328"/><path d="M98 173l6 17 6-17zM130 173l6 17 6-17z" fill="#fff"/>`;
+  else s += `<path d="M94 176q26 20 52 0" stroke="#1b1030" stroke-width="4" fill="none" stroke-linecap="round"/>`;
+  return s + '</svg>';
+}
+
+/* ================= descriptions ================= */
+const COLOR_RU = {purple:'фиолетовый', green:'зелёный', orange:'оранжевый', blue:'синий'};
+const SKIN_EN = {fur:'Its body is covered in fur.', scales:'It has got scales on its body.', slimy:'It has got slimy skin.'};
+const SKIN_RU = {fur:'мех', scales:'чешуя', slimy:'склизкая кожа'};
+const NUM = {1:'one eye', 2:'two eyes', 3:'three eyes'};
+const BOOL = {
+  horns:{yes:'It has got horns.', no:'It hasn’t got any horns.', ruY:'есть рога', ruN:'нет рогов'},
+  fangs:{yes:'It has got fangs.', no:'It hasn’t got any fangs.', ruY:'есть клыки', ruN:'нет клыков'},
+  claws:{yes:'It has got claws.', no:'It hasn’t got any claws.', ruY:'есть когти', ruN:'нет когтей'},
+  tail:{yes:'It has got a tail.', no:'It hasn’t got a tail.', ruY:'есть хвост', ruN:'нет хвоста'},
+  wings:{yes:'It has got wings, so it can fly.', no:'It hasn’t got wings, so it can’t fly.', ruY:'есть крылья', ruN:'нет крыльев'}
+};
+function sentence(f, k){
+  if (k === 'color') return `It is ${f.color}.`;
+  if (k === 'skin') return SKIN_EN[f.skin];
+  if (k === 'eyes') return `It has got ${NUM[f.eyes]}.`;
+  return f[k] ? BOOL[k].yes : BOOL[k].no;
+}
+const KEYS = ['color','skin','eyes','horns','fangs','claws','tail','wings'];
+function describe(f){ return KEYS.map(k => sentence(f, k)).join(' '); }
+function truthRu(f, k){
+  if (k === 'color') return `монстр на картинке — ${COLOR_RU[f.color]}`;
+  if (k === 'skin') return `у монстра на картинке ${SKIN_RU[f.skin]}`;
+  if (k === 'eyes') return `у монстра на картинке ${f.eyes} ${f.eyes === 1 ? 'глаз' : 'глаза'}`;
+  return `у монстра на картинке ${f[k] ? BOOL[k].ruY : BOOL[k].ruN}`;
+}
+
+/* ================= 2. build the monster ================= */
+const TASKS = [
+  {name:'Grumble',
+   text:'This is Grumble. He is purple. His body is covered in fur. He has got two horns and three eyes. He has got sharp fangs and a long tail, but he hasn’t got any wings. He hasn’t got claws.',
+   f:{color:'purple', skin:'fur', eyes:3, horns:true, fangs:true, claws:false, tail:true, wings:false},
+   hint:{color:'«He is purple» — он фиолетовый.', skin:'«His body is covered in fur» — тело покрыто мехом (fur).', eyes:'«three eyes» — три глаза.', horns:'«He has got two horns» — у него есть рога.', fangs:'«He has got sharp fangs» — у него острые клыки.', claws:'«He hasn’t got claws» — когтей нет.', tail:'«a long tail» — длинный хвост есть.', wings:'«he hasn’t got any wings» — крыльев нет.'}},
+  {name:'Squish',
+   text:'Meet Squish! She is a green monster with slimy skin. She has got one big eye in the middle of her face. She can fly. She hasn’t got a tail or horns. She has got long claws, but no fangs — she only eats pumpkin soup!',
+   f:{color:'green', skin:'slimy', eyes:1, horns:false, fangs:false, claws:true, tail:false, wings:true},
+   hint:{color:'«a green monster» — она зелёная.', skin:'«slimy skin» — склизкая кожа.', eyes:'«one big eye» — один большой глаз.', horns:'«She hasn’t got a tail or horns» — нет ни хвоста, ни рогов.', fangs:'«but no fangs» — клыков нет: она ест только тыквенный суп.', claws:'«She has got long claws» — когти есть.', tail:'«She hasn’t got a tail or horns» — хвоста нет.', wings:'«She can fly» — она умеет летать, значит, у неё есть крылья. Это нужно было догадаться!'}},
+  {name:'Spike',
+   text:'This is Spike. He is the colour of a pumpkin. Like a fish or a snake, his body is covered in scales. I have got two eyes, and Spike has got one more. He can’t fly, but he has got a tail like a dragon. Be careful — he bites with his long, sharp teeth and he scratches with his sharp nails! There is nothing on his head.',
+   f:{color:'orange', skin:'scales', eyes:3, horns:false, fangs:true, claws:true, tail:true, wings:false},
+   hint:{color:'«the colour of a pumpkin» — цвета тыквы, значит, оранжевый.', skin:'«Like a fish or a snake… scales» — как у рыбы или змеи: чешуя.', eyes:'«I have got two eyes, and Spike has got one more» — у меня 2 глаза, у Спайка на один больше: 2 + 1 = 3.', horns:'«There is nothing on his head» — на голове ничего нет, значит, рогов нет.', fangs:'«he bites with his long, sharp teeth» — длинные острые зубы — это клыки (fangs).', claws:'«he scratches with his sharp nails» — острые ногти, которыми царапаются, — это когти (claws).', tail:'«he has got a tail like a dragon» — хвост есть.', wings:'«He can’t fly» — летать не умеет, значит, крыльев нет.'}}
+];
+const LABELS = {color:'Colour', skin:'Skin', eyes:'Eyes', horns:'Horns', fangs:'Mouth', claws:'Hands', tail:'Tail', wings:'Wings'};
+const CHOICES = {
+  color:[['purple','purple'],['green','green'],['orange','orange'],['blue','blue']],
+  skin:[['fur','fur'],['scales','scales'],['slimy','slimy skin']],
+  eyes:[[1,'one eye'],[2,'two eyes'],[3,'three eyes']],
+  horns:[[true,'horns'],[false,'no horns']],
+  fangs:[[true,'fangs'],[false,'no fangs']],
+  claws:[[true,'claws'],[false,'no claws']],
+  tail:[[true,'a tail'],[false,'no tail']],
+  wings:[[true,'wings'],[false,'no wings']]
+};
+const START = {color:'grey', skin:null, eyes:2, horns:null, fangs:null, claws:null, tail:null, wings:null};
+let mi = 0, mf = {...START}, mFree = false, mSolved = 0, mFirst = true, mDone = false;
+function drawStage(){ $('mStage').innerHTML = monster({...mf, horns:!!mf.horns, fangs:!!mf.fangs, claws:!!mf.claws, tail:!!mf.tail, wings:!!mf.wings}); }
+function renderOpts(){
+  $('mOpts').innerHTML = KEYS.map(k => `<div class="opt-row"><div class="lbl">${LABELS[k]}</div><div class="chips">${
+    CHOICES[k].map(([v, l]) => `<button class="chip${k === 'color' ? ' swatch' : ''}" style="${k === 'color' ? '--sw:' + COLORS[v][0] : ''}" data-k="${k}" data-v="${v}" aria-pressed="${mf[k] === v}">${l}</button>`).join('')
+  }</div></div>`).join('');
+  $('mOpts').querySelectorAll('.chip').forEach(b => b.onclick = () => {
+    if (mDone && !mFree) return;
+    const k = b.dataset.k, raw = b.dataset.v;
+    mf[k] = k === 'eyes' ? +raw : (raw === 'true' ? true : raw === 'false' ? false : raw);
+    renderOpts(); drawStage();
+  });
+}
+function loadMonster(){
+  mf = {...START}; mFirst = true; mDone = false;
+  $('mFb').className = 'fb'; $('mNext').disabled = true; $('mCheck').disabled = false;
+  if (mFree){
+    $('mCount').textContent = 'Твой собственный монстр';
+    $('mText').textContent = 'Make your own monster! Choose everything, then press “Describe my monster”.';
+    $('mCheck').textContent = 'Describe my monster';
+  } else {
+    $('mCount').textContent = `Монстр ${mi + 1} из ${TASKS.length}: ${TASKS[mi].name}`;
+    $('mText').textContent = TASKS[mi].text;
+    $('mCheck').textContent = 'Check my monster';
+  }
+  renderOpts(); drawStage();
+}
+$('mSay').onclick = () => say(mFree ? 'Make your own monster!' : TASKS[mi].text, 0.82);
+$('mHide').onclick = () => {
+  const on = $('mPaper').classList.toggle('hidden-text');
+  $('mHide').setAttribute('aria-pressed', on); $('mHide').textContent = on ? '👀 Show the text' : '🎧 Listen only';
+};
+$('mCheck').onclick = () => {
+  const missing = KEYS.filter(k => mf[k] === null || (k === 'color' && mf.color === 'grey'));
+  if (missing.length){ feedback($('mFb'), false, `Ты выбрал ещё не всё. Осталось: <b>${missing.map(k => LABELS[k]).join(', ')}</b>.`); return; }
+  if (mFree){
+    const d = describe(mf).replace(/^It is/, 'My monster is');
+    feedback($('mFb'), true, `Вот описание твоего монстра — прочитай его вслух:<br><b>${d}</b>`);
+    say(d, 0.85); return;
+  }
+  const t = TASKS[mi], wrong = KEYS.filter(k => mf[k] !== t.f[k]);
+  if (!wrong.length){
+    if (mFirst) mSolved++;
+    mDone = true; $('mCheck').disabled = true;
+    feedback($('mFb'), true, `Верно! Это точно ${t.name}. ${mFirst ? 'С первой попытки — отлично!' : 'Ошибки исправлены — молодец!'}`);
+    say(`Well done! This is ${t.name}!`);
+    if (mi < TASKS.length - 1) $('mNext').disabled = false;
+    else {
+      $('mScore').innerHTML = `Все монстры собраны! С первой попытки: ${mSolved} из ${TASKS.length}. <button class="btn ghost" id="mFreeBtn" style="margin-left:8px">Создать своего монстра</button>`;
+      $('mFreeBtn').onclick = () => { mFree = true; $('mScore').textContent = ''; loadMonster(); };
+      markDone(2);
+    }
+  } else {
+    mFirst = false;
+    feedback($('mFb'), false, `Почти! Не совпадает: ${wrong.length}.<br>` + wrong.map(k => `• <b>${LABELS[k]}</b>: ${t.hint[k]}`).join('<br>') + '<br>Исправь и проверь ещё раз.');
+  }
+};
+$('mNext').onclick = () => { mi++; loadMonster(); };
+loadMonster();
+
+/* ================= 3. potions ================= */
+const ING = {
+  frog:{e:'🐸', one:'frog eye', many:'frog eyes', c:'#6cc04a'},
+  spider:{e:'🕷️', one:'spider leg', many:'spider legs', c:'#3a3a3a'},
+  bat:{e:'🦇', one:'bat wing', many:'bat wings', c:'#5b3f8c'},
+  mushroom:{e:'🍄', one:'mushroom', many:'mushrooms', c:'#d9443a'},
+  seeds:{svg:ICON.seeds, one:'pumpkin seed', many:'pumpkin seeds', c:'#f0b030'},
+  snake:{e:'🐍', one:'snake skin', many:'snake skins', c:'#3f9f6a'},
+  worm:{e:'🪱', one:'worm', many:'worms', c:'#d98a8a'}
+};
+const POTIONS = [
+  {name:'The Invisible Potion 👻', color:'#bfe8ff', done:'You can’t see me now!',
+   text:'First, put two frog eyes into the cauldron. Next, add three spider legs. Then stir it four times. Finally, add one mushroom.',
+   steps:[{a:'frog',n:2,q:'First, put two frog eyes into the cauldron.'},{a:'spider',n:3,q:'Next, add three spider legs.'},{a:'stir',n:4,q:'Then stir it four times.'},{a:'mushroom',n:1,q:'Finally, add one mushroom.'}]},
+  {name:'The Flying Potion 🦇', color:'#b48cff', done:'Up, up and away!', forbid:'worm',
+   forbidRu:'В рецепте сказано «Don’t add any worms» — червяков класть нельзя! Don’t = не делай.',
+   text:'Put in as many bat wings as a bat has got. Then add one snake skin. Don’t add any worms — they make the potion too heavy! Stir it twice. Before you stir it again three times, add five pumpkin seeds.',
+   steps:[{a:'bat',n:2,q:'Put in as many bat wings as a bat has got.',ru:'Сколько крыльев у летучей мыши? Два.'},{a:'snake',n:1,q:'Then add one snake skin.'},{a:'stir',n:2,q:'Stir it twice.',ru:'twice = два раза.'},{a:'seeds',n:5,q:'Before you stir it again three times, add five pumpkin seeds.',ru:'before = перед тем как: сначала семечки, потом снова помешать.'},{a:'stir',n:3,q:'…stir it again three times.'}]},
+  {name:'The Monster Potion 👹', color:'#7cd14b', done:'Grrr! Now you are a monster!', forbid:'bat',
+   forbidRu:'В этом рецепте нет крыльев летучей мыши — они тут лишние. Клади только то, что написано.',
+   text:'Start with the worms: add as many worms as you have got hands. After that, stir the potion once. Then put in three mushrooms and the same number of frog eyes. Don’t stir it again! Finish with one snake skin.',
+   steps:[{a:'worm',n:2,q:'Add as many worms as you have got hands.',ru:'Сколько у тебя рук? Две — значит, 2 червяка.'},{a:'stir',n:1,q:'After that, stir the potion once.',ru:'once = один раз.'},{a:'mushroom',n:3,q:'Then put in three mushrooms…'},{a:'frog',n:3,q:'…and the same number of frog eyes.',ru:'the same number = столько же, то есть тоже 3.'},{a:'snake',n:1,q:'Finish with one snake skin.',ru:'Don’t stir it again — больше не помешивать!'}]}
+];
+const potSvg = `<svg viewBox="0 0 220 210" aria-hidden="true">
+  <g id="bubbles"><circle class="bub" cx="80" cy="70" r="7" fill="#fff" opacity=".7"/><circle class="bub" cx="120" cy="66" r="5" fill="#fff" opacity=".7"/><circle class="bub" cx="148" cy="72" r="6" fill="#fff" opacity=".7"/></g>
+  <path d="M28 82q0 108 82 108t82-108z" fill="#2b2b33"/>
+  <path d="M60 186l-12 18M160 186l12 18" stroke="#2b2b33" stroke-width="8" stroke-linecap="round"/>
+  <ellipse cx="110" cy="82" rx="86" ry="17" fill="#45454f"/>
+  <ellipse id="liq" cx="110" cy="83" rx="74" ry="11" fill="#6b6b7a" style="transition:fill .5s"/>
+  <g id="spoon"><path d="M150 95L188 18" stroke="#a0703c" stroke-width="7" stroke-linecap="round"/><ellipse cx="146" cy="100" rx="8" ry="5" fill="#a0703c"/></g>
+</svg>`;
+$('pPot').innerHTML = potSvg;
+$('pIngr').innerHTML = Object.entries(ING).map(([k, v]) => `<button class="ing" data-k="${k}"><span class="e">${v.svg || v.e}</span>${v.many}</button>`).join('');
+let pi = 0, acts = [], pFirst = true, pSolved = 0, pLocked = false, stirAngle = 0;
+function groups(a){ const g = []; a.forEach(x => { if (g.length && g[g.length-1].a === x) g[g.length-1].n++; else g.push({a:x, n:1}); }); return g; }
+function gText(g){
+  if (g.a === 'stir') return g.n === 1 ? 'stirred once' : g.n === 2 ? 'stirred twice' : `stirred ${g.n} times`;
+  const i = ING[g.a]; return `${g.n} ${g.n === 1 ? i.one : i.many}`;
+}
+function ruStep(s){
+  if (s.a === 'stir') return `помешать ${s.n} ${s.n === 1 ? 'раз' : s.n < 5 ? 'раза' : 'раз'}`;
+  return `${s.n} × ${ING[s.a].many}`;
+}
+function mixColor(){
+  const ings = acts.filter(a => a !== 'stir');
+  if (!ings.length) return '#6b6b7a';
+  let r = 0, g = 0, b = 0;
+  ings.forEach(a => { const h = ING[a].c; r += parseInt(h.slice(1,3),16); g += parseInt(h.slice(3,5),16); b += parseInt(h.slice(5,7),16); });
+  const n = ings.length, hx = v => Math.round(v / n).toString(16).padStart(2, '0');
+  return '#' + hx(r) + hx(g) + hx(b);
+}
+function updatePot(){
+  $('liq').setAttribute('fill', mixColor());
+  $('pLog').textContent = acts.length ? 'You: ' + groups(acts).map(gText).join(' → ') : 'The cauldron is empty.';
+}
+function loadPotion(){
+  const p = POTIONS[pi];
+  acts = []; pFirst = true; pLocked = false;
+  $('pCount').textContent = `Зелье ${pi + 1} из ${POTIONS.length}`;
+  $('pName').textContent = p.name; $('pText').textContent = p.text;
+  $('pFb').className = 'fb'; $('pNext').disabled = true; $('pCheck').disabled = false;
+  $('pPot').classList.remove('boil'); updatePot();
+}
+$('pIngr').querySelectorAll('.ing').forEach(b => b.onclick = () => {
+  if (pLocked) return;
+  acts.push(b.dataset.k); updatePot();
+  const pop = document.createElement('span'); pop.className = 'pop'; pop.innerHTML = ING[b.dataset.k].svg || ING[b.dataset.k].e;
+  pop.style.left = (40 + Math.random() * 40) + '%'; pop.style.top = '20%';
+  $('pPot').appendChild(pop); setTimeout(() => pop.remove(), 750);
+});
+$('pStir').onclick = () => {
+  if (pLocked) return;
+  acts.push('stir'); stirAngle += 360;
+  $('spoon').style.transform = `rotate(${stirAngle % 720 ? -25 : 25}deg)`;
+  setTimeout(() => $('spoon').style.transform = '', 350);
+  updatePot();
+};
+$('pEmpty').onclick = () => { if (pLocked) return; acts = []; updatePot(); $('pFb').className = 'fb'; };
+$('pSay').onclick = () => say(POTIONS[pi].text, 0.82);
+$('pCheck').onclick = () => {
+  const p = POTIONS[pi], g = groups(acts), t = p.steps;
+  if (!acts.length){ feedback($('pFb'), false, 'Котёл пустой! Начни с первого шага рецепта.'); return; }
+  if (p.forbid && acts.includes(p.forbid)){
+    pFirst = false; feedback($('pFb'), false, p.forbidRu + '<br>Нажми «Empty the cauldron» и начни заново.'); return;
+  }
+  let i = 0; while (i < t.length && i < g.length && g[i].a === t[i].a && g[i].n === t[i].n) i++;
+  if (i === t.length && g.length === t.length){
+    if (pFirst) pSolved++;
+    pLocked = true; $('pCheck').disabled = true;
+    $('liq').setAttribute('fill', p.color); $('pPot').classList.add('boil');
+    feedback($('pFb'), true, `Абракадабра! Зелье готово: <b>${p.name}</b> — ${p.done} ${pFirst ? '(с первой попытки!)' : ''}`);
+    say('Abracadabra! ' + p.done);
+    if (pi < POTIONS.length - 1) $('pNext').disabled = false;
+    else { $('pScore').textContent = `Все зелья сварены! С первой попытки: ${pSolved} из ${POTIONS.length}.`; markDone(3); }
+    return;
+  }
+  let msg;
+  if (i >= g.length){
+    msg = `Пока всё правильно, но рецепт не закончен. Следующий шаг ${i + 1}: «${t[i].q}» — ${ruStep(t[i])}.` + (t[i].ru ? ' ' + t[i].ru : '');
+    feedback($('pFb'), false, msg + '<br>Продолжай — котёл выливать не нужно!'); return;
+  }
+  if (i === g.length - 1 && i < t.length && g[i].a === t[i].a && g[i].n < t[i].n){
+    feedback($('pFb'), false, `Пока всё правильно, но шаг ${i + 1} не закончен: «${t[i].q}» — нужно ${ruStep(t[i])}, а у тебя пока: ${gText(g[i])}.` + (t[i].ru ? ' ' + t[i].ru : '') + '<br>Продолжай — котёл выливать не нужно!');
+    return;
+  }
+  if (i >= t.length) msg = `Все шаги рецепта выполнены, но потом ты сделал лишнее: ${gText(g[i])}. В рецепте этого нет.`;
+  else if (g[i].a === t[i].a){
+    msg = `Шаг ${i + 1}: не то количество. В рецепте: «${t[i].q}» — нужно ${ruStep(t[i])}, а у тебя: ${gText(g[i])}.` + (t[i].ru ? ' ' + t[i].ru : '');
+  } else {
+    msg = `Шаг ${i + 1}: не тот порядок или не тот ингредиент. В рецепте: «${t[i].q}» — нужно ${ruStep(t[i])}, а у тебя: ${gText(g[i])}.` + (t[i].ru ? ' ' + t[i].ru : '');
+  }
+  pFirst = false;
+  feedback($('pFb'), false, msg + '<br>Нажми «Empty the cauldron» и попробуй ещё раз.');
+};
+$('pNext').onclick = () => { pi++; loadPotion(); };
+loadPotion();
+
+/* ================= 4. grammar ================= */
+const QUIZ = [
+  {t:'My monster ___ three eyes.', o:['has got','have got','is got'], a:0,
+   ok:'Верно! My monster = it (он/оно), а с he/she/it — <b>has got</b>.', no:'Не совсем. My monster — это «он» (it), поэтому <b>has got</b>. Have got — для I, you, we, they.'},
+  {t:'Witches ___ black hats.', o:['has got','have got','is got'], a:1,
+   ok:'Верно! Witches — много ведьм (they), значит <b>have got</b>.', no:'Не совсем. Witches — множественное число (they), поэтому <b>have got</b>.'},
+  {t:'“___ your monster got wings?” — “Yes, it has.”', o:['Does','Have','Has'], a:2,
+   ok:'Верно! В вопросе has/have выходит вперёд: <b>Has</b> your monster got…?', no:'Не совсем. Вопрос с has got строится так: <b>Has</b> + it + got…? Does здесь не нужен.'},
+  {t:'Spike ___ any wings, so he can’t fly.', o:['hasn’t got','haven’t got','isn’t'], a:0,
+   ok:'Верно! Spike = he, отрицание — <b>hasn’t got</b>.', no:'Не совсем. Spike — это he, поэтому отрицание <b>hasn’t got</b>.'},
+  {t:'Bats ___ fly, but cats can’t.', o:['has','can','are'], a:1,
+   ok:'Верно! <b>can</b> = умеют. После can глагол без to и без -s.', no:'Не совсем. «Умеют летать» — <b>can fly</b>.'},
+  {t:'Look at the monster! ___ claws are very long.', o:['It’s','Its','It'], a:1,
+   ok:'Верно! <b>Its</b> = его (принадлежность). It’s = it is.', no:'Не совсем. «Его когти» — <b>its</b> claws, без апострофа. It’s = it is («оно есть»).'},
+  {t:'“Has the witch got a cauldron?” — “No, she ___.”', o:['hasn’t','haven’t','doesn’t'], a:0,
+   ok:'Верно! Краткий ответ повторяет has: No, she <b>hasn’t</b>.', no:'Не совсем. Вопрос был с has, значит, и ответ: No, she <b>hasn’t</b>.'},
+  {t:'___ you add the seeds, stir the potion.', o:['Before','Then','Finally'], a:0,
+   ok:'Верно! <b>Before</b> = перед тем как: «Перед тем как добавить семечки, помешай».', no:'Не совсем. В предложении два действия, их связывает <b>Before</b> — «перед тем как».'},
+  {t:'Last Halloween, a big monster ___ my little brother.', o:['scares','scared','is scaring'], a:1,
+   ok:'Верно! Last Halloween — прошлое, значит Past Simple: <b>scared</b>.', no:'Не совсем. «Last Halloween» — это прошлое, нужен Past Simple: <b>scared</b>.'},
+  {t:'Squish is ___ than Grumble. She is very wet and sticky!', o:['slimyer','more slimy','slimier'], a:2,
+   ok:'Верно! slimy → <b>slimier</b>: y меняется на i + er.', no:'Не совсем. Короткое прилагательное на -y: y → i + er, получается <b>slimier</b>.'}
+];
+let qRight = 0, qDone = 0;
+$('quiz').innerHTML = QUIZ.map((q, i) => `<div class="q" data-i="${i}"><div class="t">${i + 1}. ${q.t}</div><div class="opts">${q.o.map((o, j) => `<button class="opt" data-j="${j}">${o}</button>`).join('')}</div><div class="fb"></div></div>`).join('');
+$('quiz').querySelectorAll('.q').forEach(box => {
+  const q = QUIZ[+box.dataset.i];
+  box.querySelectorAll('.opt').forEach(btn => btn.onclick = () => {
+    const right = +btn.dataset.j === q.a;
+    box.querySelectorAll('.opt').forEach((b, k) => { b.disabled = true; if (k === q.a) b.classList.add('right'); });
+    if (!right) btn.classList.add('wrong');
+    feedback(box.querySelector('.fb'), right, right ? q.ok : q.no);
+    say(q.t.replace(/_+/, q.o[q.a]));
+    if (right) qRight++; qDone++;
+    $('qScore').textContent = `Результат: ${qRight} из ${qDone}` + (qDone === QUIZ.length ? (qRight === QUIZ.length ? ' — идеально! 🧪' : ' — молодец!') : '');
+    if (qDone === QUIZ.length) markDone(4);
+  });
+});
+
+/* ================= 5. which description ================= */
+function randomMonster(){
+  return {color:rnd(['purple','green','orange','blue']), skin:rnd(['fur','scales','slimy']), eyes:rnd([1,2,3]),
+          horns:Math.random() < .5, fangs:Math.random() < .5, claws:Math.random() < .5, tail:Math.random() < .5, wings:Math.random() < .5};
+}
+function mutate(f, k){
+  const g = {...f};
+  if (k === 'color') g.color = rnd(['purple','green','orange','blue'].filter(c => c !== f.color));
+  else if (k === 'skin') g.skin = rnd(['fur','scales','slimy'].filter(c => c !== f.skin));
+  else if (k === 'eyes') g.eyes = rnd([1,2,3].filter(c => c !== f.eyes));
+  else g[k] = !f[k];
+  return g;
+}
+let wRight = 0, wDone = 0, W_N = 4;
+function buildWho(){
+  wRight = 0; wDone = 0; $('wScore').textContent = '';
+  const items = [];
+  for (let i = 0; i < W_N; i++){
+    const f = randomMonster(), [k1, k2] = shuffle(KEYS).slice(0, 2);
+    const opts = shuffle([{f, wrongK:null}, {f:mutate(f, k1), wrongK:k1}, {f:mutate(f, k2), wrongK:k2}]);
+    items.push({f, opts});
+  }
+  $('who').innerHTML = items.map((it, i) => `
+    <div class="q" data-i="${i}"><div class="who">
+      <div class="mini">${monster(it.f)}</div>
+      <div><div class="t">Monster ${i + 1}</div><div class="opts">${it.opts.map((o, j) => `<button class="opt" data-j="${j}">${describe(o.f)}</button>`).join('')}</div><div class="fb"></div></div>
+    </div></div>`).join('');
+  $('who').querySelectorAll('.q').forEach(box => {
+    const it = items[+box.dataset.i];
+    box.querySelectorAll('.opt').forEach(btn => btn.onclick = () => {
+      const o = it.opts[+btn.dataset.j], right = o.wrongK === null;
+      box.querySelectorAll('.opt').forEach((b, k) => { b.disabled = true; if (it.opts[k].wrongK === null) b.classList.add('right'); });
+      if (!right) btn.classList.add('wrong');
+      feedback(box.querySelector('.fb'), right, right
+        ? 'Верно! Каждое предложение совпадает с картинкой.'
+        : `Не совсем. В этом описании сказано: «${sentence(o.f, o.wrongK)}», а ${truthRu(it.f, o.wrongK)}. Правильное описание отмечено зелёным.`);
+      if (right) wRight++; wDone++;
+      $('wScore').textContent = `Результат: ${wRight} из ${wDone}` + (wDone === W_N ? ' — нажми «New monsters», чтобы потренироваться ещё.' : '');
+      if (wDone === W_N) markDone(5);
+    });
+  });
+}
+$('wNew').onclick = buildWho;
+buildWho();
+
+go(1);
+</script>
+</body>
+</html>
